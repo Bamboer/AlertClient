@@ -38,6 +38,6 @@ func run(){
 
 func main(){
   flag.Parse()
-  client,_ := client.NewGrafanaClient("http://10.x.43.17x:3000","eyJrIjoia1AyeWhsbUpyMTE2VU41TlBCRnZHcVNOFoyM1FEcWIiLCJuIjoidGVzdDEiLCJpZCI6MX0=")
+  client,_ := client.NewGrafanaClient("http://192.168.16.127:3000","eyJrIjoicHA2aVJialBVcmQzU2V2dWp2ajJmZ0NQZUVoTVQwREgiLCJuIjoidGVzdCIsImlkIjoxfQ==")
   fmt.Println(data)
 }
