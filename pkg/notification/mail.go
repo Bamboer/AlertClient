@@ -79,7 +79,7 @@ func (m *mail) Send(message Message) error {
                 m.writeFile(buffer, message.attachment.name)
         }
         buffer.WriteString("\r\n--" + boundary + "--")
-        smtp.SendMail(m.host+m.port, m.auth, m.user, m.to, buffer.Bytes())
+        smtp.SendMail(m.host+m.port, m.auth, m.user, message.to, buffer.Bytes())
         return nil
 }
 
@@ -98,7 +98,7 @@ func (m *mail) writeFile(buffer *bytes.Buffer, fileName string) {
         if err != nil {
                 fmt.Println(err)
         }
-        payload := make([]byte, base64.StdEncoding.EncodeLen(len(file)))
+        payload := make([]byte, base64.StdEncoding.EncodedLen(len(file)))
         base64.StdEncoding.Encode(payload, file)
         buffer.WriteString("\r\n")
         for index, line := 0, len(payload); index < line; index++ {

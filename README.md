@@ -1,2 +1,2 @@
-# alert_client
+# Alert_client
 A grafana alert client

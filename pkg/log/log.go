@@ -16,7 +16,7 @@ var (
 
 func init(){
   arg := path.Base(os.Args[0])
-  logfile := strings.ToLower(arg + ".log")
+  logfile := strings.ToLower(arg + "1.log")
   file,err := os.OpenFile(logfile,os.O_CREATE|os.O_WRONLY|os.O_APPEND,0666)
   if err != nil{
      log.Fatalln("Failed to open file: ",err)

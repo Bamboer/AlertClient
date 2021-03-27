@@ -1,12 +1,13 @@
 package client
 
 import (
-//	"encoding/json"
-//	"fmt"
+	//	"encoding/json"
+	//	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-//	"reflect"
+	//	"reflect"
+	"grafana/pkg/log"
 )
 
 type grafana_client struct {
@@ -19,6 +20,7 @@ func NewGrafanaClient(uri, token string) (*grafana_client, error) {
 	url, err := url.Parse(uri)
 	token = "Bearer " + token
 	if err != nil {
+		log.Infoln(err)
 		return nil, err
 	}
 	return &grafana_client{
@@ -33,6 +35,7 @@ func (c *grafana_client) Get(path string) (io.ReadCloser, error) {
 	uri.Path = path
 	req, err := http.NewRequest("GET", uri.String(), nil)
 	if err != nil {
+		log.Infoln(err)
 		return nil, err
 	}
 	req.Header.Add("Authorization", c.token)
@@ -41,6 +44,7 @@ func (c *grafana_client) Get(path string) (io.ReadCloser, error) {
 	req.Header.Add("Accept", "application/json")
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Infoln(err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -48,7 +52,7 @@ func (c *grafana_client) Get(path string) (io.ReadCloser, error) {
 	//        if err != nil {
 	//                return nil, err
 	//        }
-        data := resp.Body
+	data := resp.Body
 	return data, nil
 }
 
