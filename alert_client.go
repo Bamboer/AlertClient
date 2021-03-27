@@ -3,6 +3,7 @@ import (
   "os"
   "fmt"
   "time"
+  "encoding/json"
   "path/filepath"
   "grafana/pkg/configer"
   "grafana/pkg/client"
@@ -13,6 +14,9 @@ import (
 var (
   ConfigFile string
   Version   bool
+  alerts    Alerts
+  org      Org
+  Dashboard dashboard
 )
 var (
   Version = "v1"
@@ -31,17 +35,22 @@ func init(){
     os.Exit(0)
   }
 }
-
+/*
 func run(alert_client,){
   ticker := time.NewTicker(30 * time.Second)
   for _ = range ticker.C{
     data : = alert_client.Get()
   }
-}
+}*/
 
 func main(){
   flag.Parse()
   grafana_conf := configfile()
   alert_client,_ := client.NewGrafanaClient(grafana_conf.grafana_url,grafana_conf.grafana_token)
-  run
+  GetData := alert_client.Get("/api/alerts")
+  err := json.NewDecoder(GetData).Decode(&alerts)
+  if err != nil{
+    log.Infoln(err)
+  }
+  log.Infoln(alerts)
 }

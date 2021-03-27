@@ -9,7 +9,7 @@ import (
 
 var (
   debug *log.Logger
-  info *log.Logger
+  infor *log.Logger
   warn *log.Logger
   broken *log.Logger
 )
@@ -22,13 +22,13 @@ func init(){
      log.Fatalln("Failed to open file: ",err)
   }
   debug = log.New(os.Stdout,"Trace",log.Ldate|log.Ltime|log.Lshortfile)
-  info = log.New(file,"Info",log.Ldate|log.Ltime|log.Lshortfile)
+  infor = log.New(file,"Info",log.Ldate|log.Ltime|log.Lshortfile)
   warn = log.New(file,"Warn",log.Ldate|log.Ltime|log.Lshortfile)
   broken = log.New(io.MultiWriter(os.Stdout,file),"Error",log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func Infotf(format string,info ...interface{}){
-  info.Printf(format,info...)
+  infor.Printf(format,info...)
 }
 
 func Debugtf(format string,info ...interface{}){
@@ -44,7 +44,7 @@ func Errortf(format string,info ...interface{}){
 }
 
 func Infoln(info ...interface{}){
-  info.Println(info...)
+  infor.Println(info...)
 }
 
 func Debugln(info...interface{}){

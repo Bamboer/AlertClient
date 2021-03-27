@@ -1,12 +1,12 @@
 package client
 
 import (
-	"encoding/json"
-	"fmt"
+//	"encoding/json"
+//	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
+//	"reflect"
 )
 
 type grafana_client struct {
@@ -48,7 +48,8 @@ func (c *grafana_client) Get(path string) (io.ReadCloser, error) {
 	//        if err != nil {
 	//                return nil, err
 	//        }
-	return resp.Body, nil
+        data := resp.Body
+	return data, nil
 }
 
 /*
