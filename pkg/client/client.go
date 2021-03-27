@@ -1,6 +1,6 @@
-package client
+package main
 import (
-//  "fmt"
+  "fmt"
   "encoding/json"
   "net/http"
   "net/url"
@@ -28,7 +28,7 @@ func NewGrafanaClient(uri,token string)(*grafana_client,error){
   },nil
 }
 
-func (c *grafana_client) Get(path string) (interface{}, error) {
+func (c *grafana_client) Get(path string) (*interface{}, error) {
         uri := c.uri
         uri.Path = path
         req, err := http.NewRequest("GET", uri.String(), nil)
@@ -50,5 +50,16 @@ func (c *grafana_client) Get(path string) (interface{}, error) {
         if err != nil {
                 return nil, err
         }
-        return gr, nil
+        return &gr, nil
+}
+
+func main(){
+  C,_ := NewGrafanaClient("http://192.168.16.127:3000","eyJrIjoicHA2aVJialBVcmQzU2V2dWp2ajJmZ0NQZUVoTVQwREgiLCJuIjoidGVzdCIsImlkIjoxfQ==")
+  data,_ := C.Get("/api/dashboards/uid/Y6vK4lwGz")
+  switch value := data.(type){
+  case map[string] string:
+    fmt.Println(value)
+  default:
+    fmt.Println("Default: ",value)
+  }
 }
