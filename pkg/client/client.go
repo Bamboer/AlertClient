@@ -1,13 +1,10 @@
 package client
 
 import (
-	//	"encoding/json"
-	//	"fmt"
-	"io"
+        "log"
+	"encoding/json"
 	"net/http"
 	"net/url"
-	//	"reflect"
-	"grafana/pkg/log"
 )
 
 type grafana_client struct {
@@ -19,8 +16,10 @@ type grafana_client struct {
 func NewGrafanaClient(uri, token string) (*grafana_client, error) {
 	url, err := url.Parse(uri)
 	token = "Bearer " + token
+        log.Println(url)
+        log.Println(token)
 	if err != nil {
-		log.Infoln(err)
+		info.Println(err)
 		return nil, err
 	}
 	return &grafana_client{
@@ -30,63 +29,28 @@ func NewGrafanaClient(uri, token string) (*grafana_client, error) {
 	}, nil
 }
 
-func (c *grafana_client) Get(path string) (io.ReadCloser, error) {
+func (c *grafana_client) Get(path string, v interface{}) error {
 	uri := c.uri
 	uri.Path = path
 	req, err := http.NewRequest("GET", uri.String(), nil)
-	if err != nil {
-		log.Infoln(err)
-		return nil, err
+        if err != nil {
+		info.Println(err)
+		return err
 	}
 	req.Header.Add("Authorization", c.token)
 	//        req.SetBasicAuth("admin", "admin")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Accept", "application/json")
 	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		log.Infoln(err)
-		return nil, err
+        if err != nil {
+		info.Println(err)
+		return err
 	}
 	defer resp.Body.Close()
-	//        err = json.NewDecoder(resp.Body).Decode(&gr)
-	//        if err != nil {
-	//                return nil, err
-	//        }
-	data := resp.Body
-	return data, nil
+	if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
+		info.Println(err)
+		return err
+	}
+        log.Println(v)
+	return nil
 }
-
-/*
-func main(){
-  C,_ := NewGrafanaClient("http://192.168.16.127:3000","eyJrIjoiZExNdVNiR3VaamdHSkxmNnNWNDdORnY2bXEyODBMT1IiLCJuIjoidGVzdCIsImlkIjoxfQ==")
-//  data,err := C.Get("/api/dashboards/uid/CX9BS_wMk")
-//  data,err := C.Get("/api/org")
-  data,err := C.Get("/api/alerts")
-  if err != nil{
-    fmt.Println("client error: ",err)
-  }
-  switch value := (*data).(type){
-  case map[string]interface{}:
-    fmt.Println("map :",value)
-
-  case []interface{}:
-//    fmt.Println("slice: ",value)
-    for _,i := range(value){
-//      fmt.Println(k," : ",i)
-      if v,ok := i.(map[string]interface{});ok{
-//        fmt.Println(v["evalData"])
-        if k,ok := v["evalData"].(map[string]interface{});ok{
-          fmt.Println("K: ",k["evalMatches"])
-          if s,ok := k["evalMatches"].([]interface{});ok{
-                t := reflect.TypeOf(s[0])
-                fmt.Println(t.String())
-                fmt.Println("ok")
-                fmt.Println("s ",s)
-          }
-        }
-      }
-    }
-  default:
-    fmt.Println("default: ",value)
-  }
-}*/

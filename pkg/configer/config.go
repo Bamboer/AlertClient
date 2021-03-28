@@ -2,9 +2,9 @@ package configer
 
 import (
 	"fmt"
-	"grafana/pkg/log"
 	"io"
 	"os"
+        "log"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,7 +39,7 @@ func NewConfig(file string) (conf *Config, err error) {
 	}
 	m, err := conf.parse()
 	if err != nil {
-		log.Errorln("parse conf error: ", err)
+		log.Println("parse conf error: ", err)
 	}
 	conf.rwLock.Lock()
 	conf.data = m
@@ -52,7 +52,7 @@ func (c *Config) parse() (m map[string]string, err error) {
 	m = make(map[string]string, 1024)
 	f, err := os.Open(c.filename)
 	if err != nil {
-		log.Errorln("Failed opend file: ", err)
+		log.Println("Failed opend file: ", err)
 	}
 	defer f.Close()
 	reader := bufio.NewReader(f)
@@ -78,14 +78,14 @@ func lineParse(lineNo *int, line *string, m *map[string]string) {
 	if len(l) == 0 || l[0] == '\n' || l[0] == '#' || l[0] == ';' {
 		return
 	}
-	itemSlice := strings.Split(l, "=")
+	itemSlice := strings.Split(l, "#")
 	if len(itemSlice) == 0 {
-		log.Infoln("invalid config, line: ", lineNo)
+		log.Println("invalid config, line: ", lineNo)
 		return
 	}
 	key := strings.TrimSpace(itemSlice[0])
 	if len(key) == 0 {
-		log.Infoln("invalid config, line: ", lineNo)
+		log.Println("invalid config, line: ", lineNo)
 		return
 	} else if len(key) == 1 {
 		(*m)[key] = ""
@@ -152,21 +152,21 @@ func (c *Config) reload() {
 		func() {
 			f, err := os.Open(c.filename)
 			if err != nil {
-				log.Infoln("open file error: ", err)
+				log.Println("open file error: ", err)
 				return
 			}
 			defer f.Close()
 
 			fileinfo, err := f.Stat()
 			if err != nil {
-				log.Infoln("stat file error: ", err)
+				log.Println("stat file error: ", err)
 				return
 			}
 			curModifyTime := fileinfo.ModTime().Unix()
 			if curModifyTime > c.lastModifyTime {
 				m, err := c.parse()
 				if err != nil {
-					log.Infoln("parse config error: ", err)
+					log.Println("parse config error: ", err)
 					return
 				}
 				c.rwLock.Lock()
@@ -181,3 +181,4 @@ func (c *Config) reload() {
 		}()
 	}
 }
+
