@@ -52,12 +52,48 @@ type Evalmatche struct {
 	Value  float32           `json:"value,omitempty"`
 }
 
+
+type AlertInfo struct{
+        Id             int        `json:"Id"`
+        Version        int        `json:"Version"`
+        OrgId          int        `json:"OrgId"`
+        DashboardId    int        `json:"DashboardId"`
+        PanelId        int        `json:"PanelId"`
+        Name           string     `json:"Name"`
+        Message        string     `json:"Message,omitempty"`
+        Serverity      string     `json:"Serverity,omitempty"`
+        State          string     `json:"State"`
+        Handler        int        `json:"Handler"`
+        Silenced       bool       `json:"Silenced"`
+        ExecutionError string     `json:"ExecutionError,emitempty"`
+        Frequency      int        `json:"Frequency"`
+        For            int        `json:"For"`
+        EvalData       EvalDatas  `json:"EvalData"`
+        NewStateDate   string     `json:"NewStateDate"`
+        StateChanges   int        `json:"StateChanges"`
+        Created        string     `json:"Created"`
+        Updated        string     `json:"Updated"`
+        Settings       interface{} `json:"Settings"` 
+}
+
 func GetAlerts() ([]Alert, error) {
 	alerts := []Alert{}
 	grafana_conf := configer.ConfigParse()
 //        info.Println(grafana_conf)
 	C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
 	if err := C.Get(AlertPath, &alerts); err != nil {
+		info.Println(err)
+		return alerts, err
+	}
+	return alerts, nil
+}
+
+func GetAlert(AlertId int) (*AlertInfo, error) {
+	alerts := &AlertInfo{}
+	grafana_conf := configer.ConfigParse()
+//        info.Println(grafana_conf)
+	C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
+	if err := C.Get(AlertPath + AlertId, &alerts); err != nil {
 		info.Println(err)
 		return alerts, err
 	}
