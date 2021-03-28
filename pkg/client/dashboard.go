@@ -21,7 +21,7 @@ type Metainfo struct {
 	Updated               string `json:"updated"`
 	UpdatedBy             string `json:"updatedBy"`
 	CreatedBy             string `json:"createdBy"`
-	Version               string `json:"version"`
+	Version               int    `json:"version"`
 	HasAcl                bool   `json:"hasAcl"`
 	IsFolder              bool   `json:"isFolder"`
 	FolderId              int    `json:"folderId"`
@@ -60,11 +60,11 @@ type Variable struct {
 	List []interface{} `json:"list,omitempty"`
 }
 
-func GetDashboard() (*Dashboard, error) {
+func GetDashboard(DashboardUid string) (*Dashboard, error) {
 	db := &Dashboard{}
 	grafana_conf := configer.ConfigParse()
 	C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
-	if err := C.Get(DashboardPath, db); err != nil {
+	if err := C.Get(DashboardPath + DashboardUid, db); err != nil {
 		info.Println(err)
 		return db, err
 	}

@@ -41,11 +41,13 @@ func main(){
        os.Exit(0)
     }
   }
-   data,err := client.GetAlerts()
+//   data,err := client.GetDashboard(DashboardUid)
+//   data,err := client.GetAlerts()
+   data,err := client.GetOrg()
    if err != nil{
       info.Println(err)
    }
-   fmt.Println(data[0].State)
+   fmt.Println(data)
 }
 
 /*
