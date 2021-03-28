@@ -49,11 +49,3 @@ func main(){
    }
    fmt.Println(data)
 }
-
-/*
-func run(alert_client,){
-  ticker := time.NewTicker(30 * time.Second)
-  for _ = range ticker.C{
-
-  }
-}*/
