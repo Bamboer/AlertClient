@@ -1,10 +1,9 @@
 package client
 
 import (
-        "log"
-	"encoding/json"
 	"net/http"
 	"net/url"
+	"encoding/json"
 )
 
 type grafana_client struct {
@@ -16,8 +15,8 @@ type grafana_client struct {
 func NewGrafanaClient(uri, token string) (*grafana_client, error) {
 	url, err := url.Parse(uri)
 	token = "Bearer " + token
-        log.Println(url)
-        log.Println(token)
+//        info.Println(url)
+//        info.Println(token)
 	if err != nil {
 		info.Println(err)
 		return nil, err
@@ -51,6 +50,6 @@ func (c *grafana_client) Get(path string, v interface{}) error {
 		info.Println(err)
 		return err
 	}
-        log.Println(v)
+//        log.Println(v)
 	return nil
 }

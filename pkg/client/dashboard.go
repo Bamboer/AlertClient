@@ -62,7 +62,7 @@ type Variable struct {
 
 func GetDashboard() (*Dashboard, error) {
 	db := &Dashboard{}
-	grafana_conf := configer.Configfile()
+	grafana_conf := configer.ConfigParse()
 	C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
 	if err := C.Get(DashboardPath, db); err != nil {
 		info.Println(err)

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
         "log"
+        "path"
 	"strconv"
 	"strings"
 	"sync"
@@ -14,7 +15,19 @@ import (
 
 var (
 	DefaultLevel = 1
+        info          *log.Logger
 )
+
+func init(){
+  arg := path.Base(os.Args[0])
+  logfile := strings.ToLower(arg + "1.log")
+  file,err := os.OpenFile(logfile,os.O_CREATE|os.O_WRONLY|os.O_APPEND,0666)
+  if err != nil{
+     log.Println("Failed to open file: ",err)
+  }
+  info = log.New(io.MultiWriter(os.Stdout,file),"Info: ",log.Ldate|log.Ltime|log.Lshortfile)
+}
+
 
 type Config struct {
 	filename       string
@@ -39,7 +52,7 @@ func NewConfig(file string) (conf *Config, err error) {
 	}
 	m, err := conf.parse()
 	if err != nil {
-		log.Println("parse conf error: ", err)
+		info.Println("parse conf error: ", err)
 	}
 	conf.rwLock.Lock()
 	conf.data = m
@@ -52,7 +65,7 @@ func (c *Config) parse() (m map[string]string, err error) {
 	m = make(map[string]string, 1024)
 	f, err := os.Open(c.filename)
 	if err != nil {
-		log.Println("Failed opend file: ", err)
+		info.Println("Failed opend file: ", err)
 	}
 	defer f.Close()
 	reader := bufio.NewReader(f)
@@ -80,12 +93,12 @@ func lineParse(lineNo *int, line *string, m *map[string]string) {
 	}
 	itemSlice := strings.Split(l, "#")
 	if len(itemSlice) == 0 {
-		log.Println("invalid config, line: ", lineNo)
+		info.Println("invalid config, line: ", lineNo)
 		return
 	}
 	key := strings.TrimSpace(itemSlice[0])
 	if len(key) == 0 {
-		log.Println("invalid config, line: ", lineNo)
+		info.Println("invalid config, line: ", lineNo)
 		return
 	} else if len(key) == 1 {
 		(*m)[key] = ""
@@ -152,21 +165,21 @@ func (c *Config) reload() {
 		func() {
 			f, err := os.Open(c.filename)
 			if err != nil {
-				log.Println("open file error: ", err)
+				info.Println("open file error: ", err)
 				return
 			}
 			defer f.Close()
 
 			fileinfo, err := f.Stat()
 			if err != nil {
-				log.Println("stat file error: ", err)
+				info.Println("stat file error: ", err)
 				return
 			}
 			curModifyTime := fileinfo.ModTime().Unix()
 			if curModifyTime > c.lastModifyTime {
 				m, err := c.parse()
 				if err != nil {
-					log.Println("parse config error: ", err)
+					info.Println("parse config error: ", err)
 					return
 				}
 				c.rwLock.Lock()

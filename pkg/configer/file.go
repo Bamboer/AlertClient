@@ -5,6 +5,7 @@ import (
 
 
 var (
+  err   error
   DEFALTCONF = "alert_client.conf"
   ConfigFile = flag.String("config","alert_client.conf","alert client configuration set.")
 )
@@ -24,13 +25,18 @@ type SmtpInfo struct {
   SmtpAddress string
 }
 
-func Configfile() *Obj{
+func ConfigParse() *Obj{
   configuration := &Obj{}
   conf,_ := NewConfig(DEFALTCONF)
+  //info.Println(conf)
   if *ConfigFile != "alert_client.conf"{
      conf,_ = NewConfig(*ConfigFile)
   }
-  configuration.Dingding,_ = conf.GetString("dingding")
+  
+  configuration.Dingding,err = conf.GetString("dingding")
+  if err != nil{
+     info.Println(err)
+  }
   configuration.Grafana_token,_ = conf.GetString("grafana_token")
   configuration.Notifications,_ = conf.GetString("notifications")
   configuration.Grafana_uri,_ = conf.GetString("grafana_uri")

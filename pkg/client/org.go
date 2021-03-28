@@ -20,7 +20,7 @@ type Address struct {
 
 func GetOrg() (*Org, error) {
 	org := &Org{}
-	grafana_conf := configer.Configfile()
+	grafana_conf := configer.ConfigParse()
 	C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
 	if err := C.Get(OrgPath, org); err != nil {
 		info.Println(err)
