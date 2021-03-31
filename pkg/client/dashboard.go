@@ -65,6 +65,7 @@ type Templater struct{
 }
 
 type Vartem struct {
+        IsNone        bool                      `json:"isNone,omitempty"`
         Selected      bool                      `json:"selected,omitempty"`
         Text          string                    `json:"text,omitempty"`
         Value         string                    `json:"value,omitempty"`
