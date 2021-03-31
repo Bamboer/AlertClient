@@ -4,6 +4,7 @@ import (
   "strconv"
   "image/png"
   "grafana/pkg/client"
+  "grafana/pkg/notification"
   "grafana/pkg/configer"
 )
 
@@ -43,7 +44,7 @@ func Alerting()error{
           return err
        }
        if *alert_info.State == "ok"{
-           recovery(alertId,alertV)
+           notification.Emit(alertId,alertV)
        }
    }
 
@@ -96,9 +97,9 @@ func Alerting()error{
             m.TempVar = s
          }
          alertDict[alert.Id] = m
-
+         alertNum = len(alertDict)
          RenderImage(m)
-         send(m)
+         notification.Emit(m)
       }
    }
 }
