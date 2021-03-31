@@ -10,6 +10,21 @@ import (
         "time"
 )
 
+func init(){
+  conf = configer.ConfigParse()
+  SNS["mail"],_= NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
+}
+
+var (
+conf       *(configer.Obj)
+DEFAULTMAIL = NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
+message    = Message{"from": conf.SmtpServer.Username,
+                   "to":  conf.Notifications,
+                   "cc":  conf.Notifications_cc,
+                   "bcc":  conf.Notifications_bcc,
+           }
+)
+
 type mail struct {
         user     string
         password string
@@ -30,9 +45,9 @@ type Message struct {
 }
 
 type Attachment struct {
-        name        string
-        contentType string
-        withFile    bool
+        Name        string
+        ContentType string
+        WithFile    bool
 }
 
 func NewMail(username, password, smtpServer, port string) (*mail, error) {
@@ -46,7 +61,7 @@ func NewMail(username, password, smtpServer, port string) (*mail, error) {
         }, nil
 }
 
-func (m *mail) Send(message Message) error {
+func (m *mail) Send(state string,alertNum int,msg interface{}) error {
         buffer := bytes.NewBuffer(nil)
         boundary := "GoBoundary"
         Header := make(map[string]string)
@@ -65,11 +80,11 @@ func (m *mail) Send(message Message) error {
         body += "\r\n" + message.body + "\r\n"
         buffer.WriteString(body)
 
-        if message.attachment.withFile {
+        if message.attachment.WithFile {
                 attachment := "\r\n--" + boundary + "\r\n"
                 attachment += "Content-Transfer-Encoding:base64\r\n"
                 attachment += "Content-Disposition:attachment\r\n"
-                attachment += "Content-Type:" + message.attachment.contentType + ";name=\"" + message.attachment.name + "\"\r\n"
+                attachment += "Content-Type:" + message.attachment.ContentType + ";name=\"" + message.attachment.Name + "\"\r\n"
                 buffer.WriteString(attachment)
                 defer func() {
                         if err := recover(); err != nil {
@@ -79,7 +94,7 @@ func (m *mail) Send(message Message) error {
                 m.writeFile(buffer, message.attachment.name)
         }
         buffer.WriteString("\r\n--" + boundary + "--")
-        smtp.SendMail(m.host+m.port, m.auth, m.user, message.to, buffer.Bytes())
+        smtp.SendMail(m.host + m.port, m.auth, m.user, message.to, buffer.Bytes())
         return nil
 }
 
