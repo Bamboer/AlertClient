@@ -1,14 +1,15 @@
 package main
 import (
-  "strconv"
   "time"
+  "strconv"
   "image/png"
   "grafana/pkg/client"
+  "grafana/pkg/configer"
 )
 
 var (
   alertDict = map[int] alertinfo{}
-  dbInfo    = map[string] []map[string]string{}
+  dbInfo    = map[string] map[string]string{}
   timeSeries     = map[int][]time.Time {}
   alertingNum    = 0
 )
@@ -22,7 +23,7 @@ type alertinfo struct {
   DbUid          string
   DbSlug         string
   Frequency      int
-  TempVar        []map[string]string
+  TempVar        map[string] string
 }
 
 
@@ -44,7 +45,7 @@ func Alerting()error{
        if *alert_info.State == "ok"{
            recovery(alertId,alertV)
        }
-   }  
+   }
 
 // Get alert list
    data,err := client.GetAlerts()
@@ -62,6 +63,7 @@ func Alerting()error{
          m.PanelId = alert.PanelId
          m.DbUid  =  alert.DashboardUid
          m.DbSlug =  alert.DashboardSlug
+//Scan the alerting data
          for _,v = range(alert.EvalData.EvalMatches){
             m.AlertMetrics = append(m.AlertMetrics,v.Metric)
             m.AlertValues = append(m.AlertValues,v.Value)
@@ -75,26 +77,38 @@ func Alerting()error{
          m.Frequency = *alert_info.Frequency
 
          if k,ok := dbInfo[m.DbUid];ok{
-            m.TmpVar = k 
+            m.TmpVar = k
          }else{
+// Get Dashboard templating variables for render image url
             db,err := client.GetDashboard(m.DbUid)
             if err != nil{
                info.Println("Get Dashboard error: ",err)
             }
-            dbInfo[m.DbUid] = *db.Dashboard.Templating["list"]
-            m.TempVar = dbInfo[m.DbUid]
+
+            s := map[string]string{}
+            Temvars = *db.Dashboard.Templating["list"]
+            for _,var := range(Temvars){
+               if var.Current.Selected{
+                  s[var.Name] = var.Current.Text
+               }
+            }
+            dbInfo[m.DbUid] = s
+            m.TempVar = s
          }
          alertDict[alert.Id] = m
-         t1 = time.
-         t2 = time.
-         RenderImage(m,t1,t2)
+
+         RenderImage(m)
          send(m)
       }
    }
 }
 
 
-func RenderImage(m *alertinfo,t1,t2 time.Time){
+func RenderImage(m alertinfo){
+//Generator time series for render image
+   t1 := int(time.Now().Unix())*1000
+   t2 := t1-3600000
+   grafana_conf := configer.ConfigParse()
    url := host + "/render/d-solo/" + dashboardUid + "/" + dashboardName + "?orgid="+ orgid +"&from=" + t1 + "&to=" + t2 + "&panelId=" + panelId + "&width=1000&height=500&tz=Asia%2FShanghai"
    image_png := client.wget(url)
    os.Write(filename)
