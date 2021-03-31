@@ -14,6 +14,8 @@ type Obj struct {
   Grafana_token string
   Grafana_uri string
   Notifications string
+  Notifications_cc string
+  Notifications_bcc string
   SmtpServer SmtpInfo
   Alert_log string
   Client_log string
