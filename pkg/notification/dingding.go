@@ -5,7 +5,14 @@ import (
   "bytes"
   "net/http"
   "encoding/json"
+  "grafana/pkg/configer"
 )
+
+
+func init(){
+  conf := configer.ConfigParse()
+  SNS["dingding"] = Newdingding(*conf.Dingding)
+}
 
 var (
   reminders []string
@@ -24,7 +31,7 @@ func Newdingding(url string)*dingding{
    }
 }
 
-func (d *dingding)Send(msg string)error{
+func (d *dingding)Send(state string,alertNum int,msg interface{})error{
    data := make(map[string]interface{})
    data["msgtype"] = "text"
    data["at"] = map[string]interface{}{"atMobiles": reminders, "isAtAll": true}
@@ -33,7 +40,7 @@ func (d *dingding)Send(msg string)error{
    mdata,err := json.Marshal(data)
 //   fmt.Println("mdata: ",mdata)
    if err != nil{
-     fmt.Println("Marshal error: ",err)
+     info.Println("Marshal error: ",err)
    }
    reader := bytes.NewReader(mdata)
    req,err := http.NewRequest("POST",d.dApi,reader)
@@ -41,11 +48,11 @@ func (d *dingding)Send(msg string)error{
    resp,err := d.client.Do(req)
    defer resp.Body.Close()
    if err != nil{
-      fmt.Println("err: ",err)
+      info.Println("err: ",err)
    }
    err = json.NewDecoder(resp.Body).Decode(&gr)
    if err != nil{
-      fmt.Println("err: ",err)
+      info.Println("err: ",err)
    }
    return nil
 }
