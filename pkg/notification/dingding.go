@@ -31,7 +31,7 @@ func Newdingding(url string)*dingding{
    }
 }
 
-func (d *dingding)Send(state string,alertNum int,msg interface{})error{
+func (d *dingding)Send(msg interface{})error{
    data := make(map[string]interface{})
    data["msgtype"] = "text"
    data["at"] = map[string]interface{}{"atMobiles": reminders, "isAtAll": true}

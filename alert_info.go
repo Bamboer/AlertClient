@@ -20,23 +20,25 @@ type alertinfo struct {
   Name           string
   AlertMetrics    []string
   AlertValues     []interface{}
-  PanelId        int
-  OrgId          int
-  DbUid          string
-  DbSlug         string
-  Frequency      int
-  TempVar        map[string] string
+  PanelId         int
+  OrgId           int
+  DbUid           string
+  DbSlug          string
+  Frequency       int
+  TempVar         map[string] string
 }
 
 
 func run() error{
   ticker := time.NewTicker(30 * time.Second)
   for _ = range ticker.C{
-
+     if err := Alerter();err != nil{
+        fmt.Println(err)
+     }
   }
 }
 
-func Alerting()error{
+func Alerter()error{
 //Recovery alert item
    for alerId,alertV := range(alertDict){
        alert_info,err := client.GetAlert(strconv.Itoa(alertId))
@@ -45,7 +47,11 @@ func Alerting()error{
           return err
        }
        if *alert_info.State == "ok"{
-           notification.Emit(alertId,alertV)
+         b,err := RenderImage(alertV)
+         if err != nil {
+           info.Println(err)
+         }
+         notification.Emit("ok" ,alertV ,b)
        }
    }
 
@@ -103,7 +109,7 @@ func Alerting()error{
          if err != nil {
            info.Println(err)
          }
-         notification.Emit(m,b)
+         notification.Emit("alerting",m,b)
       }
    }
 }
@@ -129,7 +135,7 @@ func RenderImage(m alertinfo)([]byte,error){
    req.Header.Add("Authorization", token)
    req.Header.Add("Content-Type", "application/json")
    req.Header.Add("Accept", "application/json")
-// query data add
+//add query data
    q := req.URL.Query()
    q.Add("orgid", strconv.Itoa(m.OrgId))
    q.Add("from", strconv.Itoa(t2))
