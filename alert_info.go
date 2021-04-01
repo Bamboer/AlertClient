@@ -133,6 +133,9 @@ func RenderImage(m alertinfo){
    q.Add("panelId", strconv.Itoa(m.PanelId))
    q.Add("width", "1000")
    q.Add("height", "500")
+   for k,v := range(m.TempVar){
+       q.Add(k, v)
+   }
    req.URL.RawQuery = q.Encode()
    info.Println(req.URL.String())
 //request
