@@ -33,7 +33,7 @@ func run() error{
   ticker := time.NewTicker(30 * time.Second)
   for _ = range ticker.C{
      if err := Alerter();err != nil{
-        fmt.Println(err)
+        info.Println(err)
      }
   }
 }
