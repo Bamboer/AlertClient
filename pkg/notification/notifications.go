@@ -29,9 +29,9 @@ type Notification interface{
    Send(state string,alertNum int,msg interface{}) error
 }
 
-func Emit(msg interface{}){
+func Emit(msg interface{},b []byte){
    for k,v := range(SNS){
-     if err := v.Send(msg);err !=nil{
+     if err := v.Send(msg,b);err !=nil{
          info.Println(k,"send err: ",err)
      }else{
          info.Println(k,"send message: ")

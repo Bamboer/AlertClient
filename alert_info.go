@@ -1,8 +1,9 @@
 package main
 import (
   "time"
+  "io/ioutil"
   "strconv"
-  "image/png"
+//  "image/png"
   "grafana/pkg/client"
   "grafana/pkg/notification"
   "grafana/pkg/configer"
@@ -98,14 +99,17 @@ func Alerting()error{
          }
          alertDict[alert.Id] = m
          alertNum = len(alertDict)
-         RenderImage(m)
-         notification.Emit(m)
+         b,err := RenderImage(m)
+         if err != nil {
+           info.Println(err)
+         }
+         notification.Emit(m,b)
       }
    }
 }
 
 
-func RenderImage(m alertinfo){
+func RenderImage(m alertinfo)([]byte,error){
 //Generator time series for render image
    t1 := int(time.Now().Unix())*1000
    t2 := t1-3600000
@@ -137,21 +141,18 @@ func RenderImage(m alertinfo){
        q.Add(k, v)
    }
    req.URL.RawQuery = q.Encode()
-   info.Println(req.URL.String())
+   info.Println("url > ",req.URL.String())
 //request
    resp, err := c.client.Do(req)
    if err != nil {
-           fmt.Println(err)
+           info.Println(err)
+           
    }
    defer resp.Body.Close()
-   reader := bufio.NewReader(resp.Body)
-   file,err := os.Create("test.png")
+   b,err := ioutil.ReadAll(resp.Body)
    if err != nil {
-      info.Println("Create error: ",err)
+     info.Println("iotuil Read error: ",err)
+     return nil,err
    }
-   n,err := reader.WriteTo(file)
-   if err != nil{
-     info.Println("Reader write error: ",err)
-   }
-   info.Println(n)
+   return b,nil
 }
