@@ -48,7 +48,7 @@ func ConfigParse() *Obj{
   configuration.SmtpServer.Username,_  = conf.GetString("username")
   configuration.SmtpServer.Password,_ = conf.GetString("password")
   configuration.SmtpServer.SmtpAddress,_ = conf.GetString("smtpAddress")
-  configuration.SmtpServer.Port,_ = conf.GetString("smtpPort")
+  configuration.SmtpServer.Port,_ = conf.GetInt("smtpPort")
   configuration.Alert_log,_ = conf.GetString("alert_log")
   configuration.Client_log,_ = conf.GetString("client_log")
   return configuration

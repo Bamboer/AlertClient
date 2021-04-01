@@ -110,8 +110,45 @@ func RenderImage(m alertinfo){
    t1 := int(time.Now().Unix())*1000
    t2 := t1-3600000
    grafana_conf := configer.ConfigParse()
-   url := host + "/render/d-solo/" + dashboardUid + "/" + dashboardName + "?orgid="+ orgid +"&from=" + t1 + "&to=" + t2 + "&panelId=" + panelId + "&width=1000&height=500&tz=Asia%2FShanghai"
-   image_png := client.wget(url)
-   os.Write(filename)
-   return image_png
+
+   uri,err := url.Parse(grafana_conf.Grafana_uri)
+   if err != nil{
+     info.Println("URL parse error: ",err)
+   }
+   token := "Bearer " + grafana_conf.Grafana_token
+   uri.Path = "/render/d-solo/" + m.DbUid + "/" + m.DbSlug
+   req, err := http.NewRequest("GET", uri.String(),nil)
+   if err != nil{
+     info.Println("request generator error: ",err)
+   }
+// request header add 
+   req.Header.Add("Authorization", token)
+   req.Header.Add("Content-Type", "application/json")
+   req.Header.Add("Accept", "application/json")
+// query data add
+   q := req.URL.Query()
+   q.Add("orgid", strconv.Itoa(m.OrgId))
+   q.Add("from", strconv.Itoa(t2))
+   q.Add("to", strconv.Itoa(t1))
+   q.Add("panelId", strconv.Itoa(m.PanelId))
+   q.Add("width", "1000")
+   q.Add("height", "500")
+   req.URL.RawQuery = q.Encode()
+   info.Println(req.URL.String())
+//request
+   resp, err := c.client.Do(req)
+   if err != nil {
+           fmt.Println(err)
+   }
+   defer resp.Body.Close()
+   reader := bufio.NewReader(resp.Body)
+   file,err := os.Create("test.png")
+   if err != nil {
+      info.Println("Create error: ",err)
+   }
+   n,err := reader.WriteTo(file)
+   if err != nil{
+     info.Println("Reader write error: ",err)
+   }
+   info.Println(n)
 }

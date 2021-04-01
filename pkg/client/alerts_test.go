@@ -1,4 +1,4 @@
-package alerts_test
+package client_test
 import (
   "grafana/pkg/client"
   "testing"
