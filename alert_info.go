@@ -26,6 +26,8 @@ type alertinfo struct {
 	DbUid        string
 	DbSlug       string
 	Frequency    int
+        StartTime    time.Time
+        EndTime      time.Time
 	TempVar      map[string]string
 }
 
@@ -51,7 +53,11 @@ func Alerter() error {
 			if err != nil {
 				info.Println(err)
 			}
+                        endtime := time.Now()
+                        alertV.EndTime = endtime
 			notification.Emit("ok", alertV, b)
+                        delete(alertDict,alertId)
+			alertNum = len(alertDict)
 		}
 	}
 
@@ -71,6 +77,7 @@ func Alerter() error {
 			m.PanelId = alert.PanelId
 			m.DbUid = alert.DashboardUid
 			m.DbSlug = alert.DashboardSlug
+                        m.StartTime = time.Now()
 			//Scan the alerting data
 			for _, v = range alert.EvalData.EvalMatches {
 				m.AlertMetrics = append(m.AlertMetrics, v.Metric)

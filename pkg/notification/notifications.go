@@ -26,10 +26,20 @@ func init() {
 
 type Notification interface{
 //send message to the receiver
-   Send(state string,alertNum int,msg interface{}) error
+   Send(state string,msg interface{},b []byte) error
 }
 
 func Emit(state string ,msg interface{},b []byte){
+   if state == "ok"{
+
+   }
+   if state == "alerting"{
+
+   }
+   if state == "render"{
+
+   }
+
    for k,v := range(SNS){
      if err := v.Send(msg,b);err !=nil{
          info.Println(k,"send err: ",err)
