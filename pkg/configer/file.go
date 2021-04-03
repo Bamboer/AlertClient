@@ -13,6 +13,8 @@ type Obj struct {
   Dingding string
   Grafana_token string
   Grafana_uri string
+  NotificationsLeader string
+  
   Notifications string
   Notifications_cc string
   Notifications_bcc string

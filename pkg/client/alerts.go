@@ -76,6 +76,20 @@ type AlertInfo struct{
         Settings       interface{} `json:"Settings"`
 }
 
+type SimpleInfo struct{
+        Name         string
+        AlertMetrics []string
+        AlertValues  []interface{}
+        PanelId      int
+        OrgId        int
+        DbUid        string
+        DbSlug       string
+        Frequency    int
+        AlertingNum  *int
+        TempVar      map[string]string
+        RenderURL    string
+}
+
 func GetAlerts() ([]Alert, error) {
         alerts := []Alert{}
         grafana_conf := configer.ConfigParse()

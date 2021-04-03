@@ -6,12 +6,13 @@ import(
   "flag"
   "path"
   "strings"
+  "grafana/pkg/client"
 )
 
 
 var (
    info    *log.Logger
-   SNS   =  make(map[string]Notification)
+   SNS   =  make(map[string] function (state string,msg client.SimpleInfo,b []byte)err )
 )
 
 func init() {
@@ -26,22 +27,12 @@ func init() {
 
 type Notification interface{
 //send message to the receiver
-   Send(state string,msg interface{},b []byte) error
+   Send(state string,msg client.SimpleInfo},b []byte) error
 }
 
-func Emit(state string ,msg interface{},b []byte){
-   if state == "ok"{
-
-   }
-   if state == "alerting"{
-
-   }
-   if state == "render"{
-
-   }
-
-   for k,v := range(SNS){
-     if err := v.Send(msg,b);err !=nil{
+func Emit(state string ,msg client.SimpleInfo,b []byte){
+   for k,Send := range(SNS){
+     if err := Send(state,msg,b);err !=nil{
          info.Println(k,"send err: ",err)
      }else{
          info.Println(k,"send message: ")

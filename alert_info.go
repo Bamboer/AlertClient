@@ -11,25 +11,12 @@ import (
 )
 
 var (
-	alertDict   = map[int]alertinfo{}
+	alertDict   = map[int] client.SimpleInfo{}
 	dbInfo      = map[string]map[string]string{}
 	timeSeries  = map[int][]time.Time{}
 	alertingNum = 0
 )
 
-type alertinfo struct {
-	Name         string
-	AlertMetrics []string
-	AlertValues  []interface{}
-	PanelId      int
-	OrgId        int
-	DbUid        string
-	DbSlug       string
-	Frequency    int
-        StartTime    time.Time
-        EndTime      time.Time
-	TempVar      map[string]string
-}
 
 func run() error {
 	ticker := time.NewTicker(30 * time.Second)
@@ -41,25 +28,6 @@ func run() error {
 }
 
 func Alerter() error {
-	//Recovery alert item
-	for alerId, alertV := range alertDict {
-		alert_info, err := client.GetAlert(strconv.Itoa(alertId))
-		if err != nil {
-			info.Println(err)
-			return err
-		}
-		if *alert_info.State == "ok" {
-			b, err := RenderImage(alertV)
-			if err != nil {
-				info.Println(err)
-			}
-                        endtime := time.Now()
-                        alertV.EndTime = endtime
-			notification.Emit("ok", alertV, b)
-                        delete(alertDict,alertId)
-			alertNum = len(alertDict)
-		}
-	}
 
 	// Get alert list
 	data, err := client.GetAlerts()
@@ -72,12 +40,11 @@ func Alerter() error {
 			if _, ok := alertDict[alert.Id]; ok {
 				continue
 			}
-			m := alertinfo{}
+			m := client.SimpleInfo{}
 			m.Name = alert.Name
 			m.PanelId = alert.PanelId
 			m.DbUid = alert.DashboardUid
 			m.DbSlug = alert.DashboardSlug
-                        m.StartTime = time.Now()
 			//Scan the alerting data
 			for _, v = range alert.EvalData.EvalMatches {
 				m.AlertMetrics = append(m.AlertMetrics, v.Metric)
@@ -110,18 +77,39 @@ func Alerter() error {
 				dbInfo[m.DbUid] = s
 				m.TempVar = s
 			}
-			alertDict[alert.Id] = m
 			alertNum = len(alertDict)
-			b, err := RenderImage(m)
+                        m.AlertingNum = &alertNum
+			b,render_url, err := RenderImage(m)
 			if err != nil {
 				info.Println(err)
 			}
+                        m.RenderURL = render_url
+			alertDict[alert.Id] = m
 			notification.Emit("alerting", m, b)
+		}
+	}
+
+	//Recovery alert item
+	for alerId, alertV := range alertDict {
+		alert_info, err := client.GetAlert(strconv.Itoa(alertId))
+		if err != nil {
+			info.Println(err)
+			return err
+		}
+		if *alert_info.State == "ok" {
+			b,render_url,err := RenderImage(alertV)
+			if err != nil {
+				info.Println(err)
+			}
+			alertNum = len(alertDict) - 1 
+                        alertV.RenderURL = render_url
+			notification.Emit("ok", alertV, b)
+                        delete(alertDict,alertId)
 		}
 	}
 }
 
-func RenderImage(m alertinfo) ([]byte, error) {
+func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
 	//Generator time series for render image
 	t1 := int(time.Now().Unix()) * 1000
 	t2 := t1 - 3600000
@@ -164,7 +152,7 @@ func RenderImage(m alertinfo) ([]byte, error) {
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		info.Println("iotuil Read error: ", err)
-		return nil, err
+		return nil, req.URL.String(), err
 	}
-	return b, nil
+	return b, req.URL.String(), nil
 }

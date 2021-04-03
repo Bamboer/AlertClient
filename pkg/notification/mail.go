@@ -11,18 +11,28 @@ import (
 )
 
 func init(){
+  SNS["mail"] = MSend
   conf = configer.ConfigParse()
-  SNS["mail"],_= NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
-}
-
-var (
-conf       *(configer.Obj)
-DEFAULTMAIL = NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
-message    = Message{"from": conf.SmtpServer.Username,
+  DEFAULTMAIL,_ = NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
+  message    = Message{"from": conf.SmtpServer.Username,
                    "to":  conf.Notifications,
                    "cc":  conf.Notifications_cc,
                    "bcc":  conf.Notifications_bcc,
            }
+}
+
+func MSend(state string,msg client.SimpleInfo,b []byte)error{
+  conf = configer.ConfigParse()
+  mclient,_= NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
+  if err :=mclient.Send(state,msg,b);err != nil{
+     info.Println(err)
+  }
+}
+
+var (
+conf        *(configer.Obj)
+DEFAULTMAIL *mail
+message     *Message
 )
 
 type mail struct {
@@ -61,7 +71,7 @@ func NewMail(username, password, smtpServer, port string) (*mail, error) {
         }, nil
 }
 
-func (m *mail) Send(state string,alertNum int,msg interface{}) error {
+func (m *mail) Send(state string,msg client.SimpleInfo,b []byte) error {
         buffer := bytes.NewBuffer(nil)
         boundary := "GoBoundary"
         Header := make(map[string]string)
