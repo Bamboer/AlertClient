@@ -12,7 +12,7 @@ import(
 
 var (
    info    *log.Logger
-   SNS   =  make(map[string] function (state string,msg client.SimpleInfo,b []byte)err )
+   SNS   =  make(map[string] func(state string,msg client.SimpleInfo,b []byte)err )
 )
 
 func init() {
@@ -31,8 +31,8 @@ type Notification interface{
 }
 
 func Emit(state string ,msg client.SimpleInfo,b []byte){
-   for k,Send := range(SNS){
-     if err := Send(state,msg,b);err !=nil{
+   for k,send := range(SNS){
+     if err := send(state,msg,b);err !=nil{
          info.Println(k,"send err: ",err)
      }else{
          info.Println(k,"send message: ")

@@ -26,7 +26,9 @@ func MSend(state string,msg client.SimpleInfo,b []byte)error{
   mclient,_= NewMail(conf.SmtpServer.Username,conf.SmtpServer.Password,conf.SmtpServer.SmtpAddress,conf.Port)
   if err :=mclient.Send(state,msg,b);err != nil{
      info.Println(err)
+     return err
   }
+  return nil
 }
 
 var (
@@ -72,21 +74,22 @@ func NewMail(username, password, smtpServer, port string) (*mail, error) {
 }
 
 func (m *mail) Send(state string,msg client.SimpleInfo,b []byte) error {
+        var imgsrc string
         buffer := bytes.NewBuffer(nil)
-        boundary := "GoBoundary"
+        boundary := "BamboerBoundary"
         Header := make(map[string]string)
         Header["From"] = message.from
         Header["To"] = strings.Join(message.to, ";")
         Header["Cc"] = strings.Join(message.cc, ";")
         Header["Bcc"] = strings.Join(message.bcc, ";")
         Header["Subject"] = message.subject
-        Header["Content-Type"] = "multipart/mixed;boundary=" + boundary
+        Header["Content-Type"] = "multipart/related;boundary=" + boundary
         Header["Mime-Version"] = "1.0"
-        Header["Date"] = time.Now().String()
+        Header["Date"] = time.Now().String().UTC()
 
         m.writeHeader(buffer, Header)
         body := "\r\n--" + boundary + "\r\n"
-        body += "Content-Type:" + message.contentType + "\r\n"
+        body += "Content-Type: text/html; charset=UTF-8 \r\n"
         body += "\r\n" + message.body + "\r\n"
         buffer.WriteString(body)
 
@@ -95,14 +98,30 @@ func (m *mail) Send(state string,msg client.SimpleInfo,b []byte) error {
                 attachment += "Content-Transfer-Encoding:base64\r\n"
                 attachment += "Content-Disposition:attachment\r\n"
                 attachment += "Content-Type:" + message.attachment.ContentType + ";name=\"" + message.attachment.Name + "\"\r\n"
+                attachment += "Content-ID: <" + message.attachment.Name + "> \r\n\r\n"
+                imgsrc = "<p><img src=\"cid:" + message.attachment.Name + "> \r\n\t\t\t"
                 buffer.WriteString(attachment)
                 defer func() {
                         if err := recover(); err != nil {
                                 fmt.Println("Error: ", err)
                         }
                 }()
-                m.writeFile(buffer, message.attachment.name)
+                m.writeFile(buffer, b)
         }
+
+        var template = `
+<html>
+	<body>
+		<p>text:%s</p><br>
+		%s			
+	</body>
+</html>`
+        var content = fmt.Sprintf(template, message.body, imgsrc)
+        body := "\r\n--" + boundary + "\r\n"
+        body += "Content-Type: text/html; charset=UTF-8 \r\n"
+        body += content
+        buffer.WriteString(body)
+
         buffer.WriteString("\r\n--" + boundary + "--")
         smtp.SendMail(m.host + m.port, m.auth, m.user, message.to, buffer.Bytes())
         return nil
@@ -118,13 +137,9 @@ func (m *mail) writeHeader(buffer *bytes.Buffer, Header map[string]string) strin
         return header
 }
 
-func (m *mail) writeFile(buffer *bytes.Buffer, fileName string) {
-        file, err := ioutil.ReadFile(fileName)
-        if err != nil {
-                fmt.Println(err)
-        }
-        payload := make([]byte, base64.StdEncoding.EncodedLen(len(file)))
-        base64.StdEncoding.Encode(payload, file)
+func (m *mail) writeFile(buffer *bytes.Buffer, b []byte) {
+        payload := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
+        base64.StdEncoding.Encode(payload, b)
         buffer.WriteString("\r\n")
         for index, line := 0, len(payload); index < line; index++ {
                 buffer.WriteByte(payload[index])
