@@ -12,6 +12,7 @@ import(
 
 var (
    info    *log.Logger
+   SENSOR  Notification
    SNS   =  make(map[string] func(state string,msg client.SimpleInfo,b []byte)err )
 )
 
@@ -27,7 +28,7 @@ func init() {
 
 type Notification interface{
 //send message to the receiver
-   Send(state string,msg client.SimpleInfo},b []byte) error
+   Send(state string) error
 }
 
 func Emit(state string ,msg client.SimpleInfo,b []byte){

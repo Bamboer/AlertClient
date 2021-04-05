@@ -11,12 +11,11 @@ import (
 )
 
 var (
-	alertDict   = map[int] client.SimpleInfo{}
+	alertDict   = map[int]client.SimpleInfo{}
 	dbInfo      = map[string]map[string]string{}
 	timeSeries  = map[int][]time.Time{}
 	alertingNum = 0
 )
-
 
 func run() error {
 	ticker := time.NewTicker(30 * time.Second)
@@ -78,12 +77,12 @@ func Alerter() error {
 				m.TempVar = s
 			}
 			alertNum = len(alertDict)
-                        m.AlertingNum = &alertNum
-			b,render_url, err := RenderImage(m)
+			m.AlertingNum = &alertNum
+			b, render_url, err := RenderImage(m)
 			if err != nil {
 				info.Println(err)
 			}
-                        m.RenderURL = render_url
+			m.RenderURL = render_url
 			alertDict[alert.Id] = m
 			notification.Emit("alerting", m, b)
 		}
@@ -97,14 +96,14 @@ func Alerter() error {
 			return err
 		}
 		if *alert_info.State == "ok" {
-			b,render_url,err := RenderImage(alertV)
+			b, render_url, err := RenderImage(alertV)
 			if err != nil {
 				info.Println(err)
 			}
-			alertNum = len(alertDict) - 1 
-                        alertV.RenderURL = render_url
+			alertNum = len(alertDict) - 1
+			alertV.RenderURL = render_url
 			notification.Emit("ok", alertV, b)
-                        delete(alertDict,alertId)
+			delete(alertDict, alertId)
 		}
 	}
 }

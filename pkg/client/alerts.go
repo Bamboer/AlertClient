@@ -78,8 +78,8 @@ type AlertInfo struct{
 
 type SimpleInfo struct{
         Name         string
-        AlertMetrics []string
-        AlertValues  []interface{}
+        AlertMetrics string
+        AlertValues  interface{}
         PanelId      int
         OrgId        int
         DbUid        string
