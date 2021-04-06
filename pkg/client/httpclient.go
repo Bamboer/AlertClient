@@ -4,18 +4,17 @@ import (
         "encoding/json"
         "gopkg.in/ini.v1"
         "io"
-        "flag"
         "log"
         "net/http"
         "net/url"
         "os"
         "path"
         "strings"
+        "grafana/pkg/configer"
 )
 
 var (
   info *log.Logger
-  ConfigFile = flag.String("config","alert_client.conf","set configuration for this app.")
 )
 
 func init() {
@@ -25,7 +24,7 @@ func init() {
         if err != nil {
                 log.Println("Failed to open file: ", err)
         }
-        cfg, err := ini.Load(*ConfigFile)
+        cfg, err := ini.Load(*configer.ConfigFile)
         if err != nil {
                 info.Println("Fail to read file: ", err)
                 os.Exit(1)

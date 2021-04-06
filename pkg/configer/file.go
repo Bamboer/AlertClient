@@ -1,11 +1,11 @@
 package configer
 
 import (
-        "flag"
         "gopkg.in/ini.v1"
         "io"
         "log"
         "os"
+        "flag"
         "path"
 //        "strconv"
         "strings"
@@ -13,7 +13,7 @@ import (
 
 var (
         info       *log.Logger
-        ConfigFile = flag.String("config", "alert_client.conf", "alert client configuration set.")
+        ConfigFile = flag.String("config","alert_client.conf","set default configuration for this app.")
 )
 
 type Obj struct {

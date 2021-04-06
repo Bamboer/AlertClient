@@ -3,6 +3,7 @@ package notification
 import (
         "gopkg.in/ini.v1"
         "grafana/pkg/client"
+        "grafana/pkg/configer"
         "io"
         "log"
         "os"
@@ -12,7 +13,6 @@ import (
 
 var (
         info   *log.Logger
-//      SENSOR Notification
         SNS    = make(map[string]func(state string, msg client.SimpleInfo, b []byte)error)
 )
 
@@ -23,7 +23,7 @@ func init() {
         if err != nil {
                 log.Println("Failed to open file: ", err)
         }
-        cfg, err := ini.Load(*ConfigFile)
+        cfg, err := ini.Load(*configer.ConfigFile)
         if err != nil {
                 info.Println("Fail to read file: ", err)
                 os.Exit(1)

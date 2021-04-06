@@ -10,16 +10,14 @@ import (
         "context"
         "strings"
         "grafana/pkg/utils"
+        "grafana/pkg/configer"
         "gopkg.in/ini.v1"
-//      "grafana/pkg/client"
-        //  "grafana/pkg/notification"
 )
 
 var (
         info    *log.Logger
         Version = "v1"
         version = flag.Bool("version", false, "Print version.")
-        ConfigFile = flag.String("config","alert_client.conf","set default configuration for this app.")
 )
 
 func init() {
@@ -29,7 +27,7 @@ func init() {
   if err != nil{
      log.Println("Failed to open file: ",err)
   }
-  cfg,err := ini.Load(*ConfigFile)
+  cfg,err := ini.Load(*configer.ConfigFile)
   if err != nil{
     info.Println("Fail to read file: ",err)
     os.Exit(1)
@@ -61,6 +59,6 @@ func main() {
       ctx,cancel := context.WithCancel(context.Background())
       defer cancel()
 
-      utils.UtilRunner(ctx)
+      utils.UtilRuner(ctx)
       run()
 }

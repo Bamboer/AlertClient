@@ -8,6 +8,7 @@ import (
         "os"
         "path"
         "strings"
+        "grafana/pkg/configer"
 )
 
 var (
@@ -22,7 +23,7 @@ func init() {
         if err != nil {
                 log.Println("Failed to open file: ", err)
         }
-        cfg, err := ini.Load(*ConfigFile)
+        cfg, err := ini.Load(*configer.ConfigFile)
         if err != nil {
                 info.Println("Fail to read file: ", err)
                 os.Exit(1)

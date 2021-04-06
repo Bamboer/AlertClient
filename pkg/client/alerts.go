@@ -59,13 +59,13 @@ type AlertInfo struct {
 type SimpleInfo struct {
         Name         string
         AlertMetrics string
-        AlertValues  interface{}
+        AlertValues  []float32
         PanelId      int
         OrgId        int
         DbUid        string
         DbSlug       string
         Frequency    int
-        AlertingNum  *int
+        AlertNum  *int
         TempVar      map[string]string
         RenderURL    string
 }

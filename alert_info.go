@@ -1,6 +1,8 @@
 package main
 
 import (
+        "net/url"
+        "net/http"
         "time"
         "strconv"
         "io/ioutil"
@@ -14,7 +16,7 @@ var (
         alertDict   = map[int]client.SimpleInfo{}
         dbInfo      = map[string]map[string]string{}
         timeSeries  = map[int][]time.Time{}
-        alertingNum = 0
+        alertNum = 0
 )
 
 func run() {
@@ -46,20 +48,20 @@ func Alerter() error {
                         m.DbUid = alert.DashboardUid
                         m.DbSlug = alert.DashboardSlug
                         //Scan the alerting data
-                        for _, v = range alert.EvalData.EvalMatches {
-                                m.AlertMetrics = append(m.AlertMetrics, v.Metric)
-                                m.AlertValues = append(m.AlertValues, v.Value)
+                        for _, v := range alert.EvalData.EvalMatches {
+                                m.AlertMetrics = m.AlertMetrics + v.Metric
+                                m.AlertValues = append(m.AlertValues,v.Value)
                         }
                         //Get alert item detail info
                         alert_info, err := client.GetAlert(strconv.Itoa(alert.Id))
                         if err != nil {
                                 info.Println("Get alert error: ", err)
                         }
-                        m.OrgId = *alert_info.OrgId
-                        m.Frequency = *alert_info.Frequency
+                        m.OrgId = alert_info.OrgId
+                        m.Frequency = alert_info.Frequency
 
                         if k, ok := dbInfo[m.DbUid]; ok {
-                                m.TmpVar = k
+                                m.TempVar = k
                         } else {
                                 // Get Dashboard templating variables for render image url
                                 db, err := client.GetDashboard(m.DbUid)
@@ -68,7 +70,7 @@ func Alerter() error {
                                 }
 
                                 s := map[string]string{}
-                                Temvars = *db.Dashboard.Templating["list"]
+                                Temvars := db.Dashboard.Templating["list"]
                                 for _, tvar := range Temvars {
                                         if tvar.Current.Selected {
                                                 s[tvar.Name] = tvar.Current.Text
@@ -78,7 +80,7 @@ func Alerter() error {
                                 m.TempVar = s
                         }
                         alertNum = len(alertDict)
-                        m.AlertingNum = &alertNum
+                        m.AlertNum = &alertNum
                         b, render_url, err := RenderImage(m)
                         if err != nil {
                                 info.Println(err)
@@ -90,13 +92,13 @@ func Alerter() error {
         }
 
         //Recovery alert item
-        for alerId, alertV := range alertDict {
+        for alertId, alertV := range alertDict {
                 alert_info, err := client.GetAlert(strconv.Itoa(alertId))
                 if err != nil {
                         info.Println(err)
                         return err
                 }
-                if *alert_info.State == "ok" {
+                if alert_info.State == "ok" {
                         b, render_url, err := RenderImage(alertV)
                         if err != nil {
                                 info.Println(err)
@@ -107,6 +109,7 @@ func Alerter() error {
                         delete(alertDict, alertId)
                 }
         }
+        return nil
 }
 
 func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
@@ -121,6 +124,7 @@ func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
         }
         token := "Bearer " + grafana_conf.Grafana_token
         uri.Path = "/render/d-solo/" + m.DbUid + "/" + m.DbSlug
+        c,_ := NewRender(grafana_conf.Grafana_uri,token)
         req, err := http.NewRequest("GET", uri.String(), nil)
         if err != nil {
                 info.Println("request generator error: ", err)
@@ -155,4 +159,23 @@ func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
                 return nil, req.URL.String(), err
         }
         return b, req.URL.String(), nil
+}
+type Render struct{
+  uri    *url.URL
+  token  string
+  client *http.Client
+}
+
+func NewRender(uri ,token string)(*Render,error){
+   url,err := url.Parse(uri)
+   if err != nil{
+     info.Println("Error: ",err)
+     return nil,err
+   }
+   token = "Bearer " + token
+   return &Render{
+       uri : url,
+       token:  token,
+       client: &http.Client{},
+   },nil
 }

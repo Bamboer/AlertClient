@@ -133,16 +133,16 @@ func timeController(start, end string) <-chan bool {
         c := make(chan bool)
         defer close(c)
         var start_time, end_time time.Time
-        starthour := strings.Split(start, ":")
-         startmin := strings.Split(start, ":")
+        starthour := strings.Split(start, ":")[0]
+        startmin := strings.Split(start, ":")[1]
 
-        endhour, endmin := strings.Split(end, ":")
-        endhour, endmin := strings.Split(end, ":")
+        endhour:= strings.Split(end, ":")[0]
+        endmin := strings.Split(end, ":")[1]
 
-        startHour := strconv.Atoi(starthour)
-        startMin := strconv.Atoi(startmin)
-        endHour := strconv.Atoi(endhour)
-        endMin := strconv.Atoi(endmin)
+        startHour,_ := strconv.Atoi(starthour)
+        startMin,_ := strconv.Atoi(startmin)
+        endHour,_ := strconv.Atoi(endhour)
+        endMin,_ := strconv.Atoi(endmin)
         if startHour > 24 || startHour < 0 || endHour > 24 || endHour < 0 || start == end || startMin > 60 || startMin < 0 || endMin > 60 || endMin < 0 {
                 info.Println("smtp server send time error, that will ignored.")
                 c <- true
@@ -166,6 +166,7 @@ func timeController(start, end string) <-chan bool {
                 c <- true
                 return c
         }
+       return c
 }
 
 func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
