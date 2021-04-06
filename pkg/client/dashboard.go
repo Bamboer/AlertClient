@@ -1,6 +1,7 @@
 package client
+
 import (
-   "grafana/pkg/configer"
+        "grafana/pkg/configer"
 )
 
 type Dashboard struct {
@@ -31,44 +32,44 @@ type Metainfo struct {
 }
 
 type Dashboardinfo struct {
-        Annotations   interface{}              `json:"annotations"`
-        Editable      bool                     `json:"editable"`
-        GnetId        string                   `json:"gnetId"`
-        GraphTooltip  int                      `json:"graphTooltip"`
-        Id            int                      `json:"id"`
-        Links         []string                 `json:"links,omitempty"`
-        Panels        interface{}              `json:"panels"`
-        SchemaVersion int                      `json:"schemaVersion"`
-        Style         string                   `json:"style"`
-        Tags          []string                 `json:"tags,omitempty"`
-        Templating    map[string][]Templater   `json:"templating,omitempty"`
-        Time          Times                    `json:"time"`
-        Timepicker    interface{}              `json:"timepicker,omitempty"`
-        Timezone      string                   `json:"timezone,omitempty"`
-        title         string                   `json:"title,omitempty"`
-        Uid           string                   `json:"uid"`
-        Variables     Variable                 `json:"variables,omitempty"`
-        Version       int                      `json:"version"`
+        Annotations   interface{}            `json:"annotations"`
+        Editable      bool                   `json:"editable"`
+        GnetId        string                 `json:"gnetId"`
+        GraphTooltip  int                    `json:"graphTooltip"`
+        Id            int                    `json:"id"`
+        Links         []string               `json:"links,omitempty"`
+        Panels        interface{}            `json:"panels"`
+        SchemaVersion int                    `json:"schemaVersion"`
+        Style         string                 `json:"style"`
+        Tags          []string               `json:"tags,omitempty"`
+        Templating    map[string][]Templater `json:"templating,omitempty"`
+        Time          Times                  `json:"time"`
+        Timepicker    interface{}            `json:"timepicker,omitempty"`
+        Timezone      string                 `json:"timezone,omitempty"`
+        title         string                 `json:"title,omitempty"`
+        Uid           string                 `json:"uid"`
+        Variables     Variable               `json:"variables,omitempty"`
+        Version       int                    `json:"version"`
 }
 
-type Templater struct{
-        Allvalue      interface{}              `json:"allValue,omitempty"`
-        Current       Vartem                   `json:"current,omitempty"`
-        Hide          int                      `json:"hide,omitempty"`
-        IncludeAll    bool                     `json:"includeAll,omitempty"`
-        Label         string                   `json:"label,omitempty"`
-        Mutil         bool                     `json:"multi,omtiempty"`
-        Name          string                   `json:"name,omitempty"`
-        Options       interface{}              `json:"options,omitempty"`
-        Query         string                   `json:"query,omitempty"`
-        Type          string                   `json:"type,omitempty"`
+type Templater struct {
+        Allvalue   interface{} `json:"allValue,omitempty"`
+        Current    Vartem      `json:"current,omitempty"`
+        Hide       int         `json:"hide,omitempty"`
+        IncludeAll bool        `json:"includeAll,omitempty"`
+        Label      string      `json:"label,omitempty"`
+        Mutil      bool        `json:"multi,omtiempty"`
+        Name       string      `json:"name,omitempty"`
+        Options    interface{} `json:"options,omitempty"`
+        Query      string      `json:"query,omitempty"`
+        Type       string      `json:"type,omitempty"`
 }
 
 type Vartem struct {
-        IsNone        bool                      `json:"isNone,omitempty"`
-        Selected      bool                      `json:"selected,omitempty"`
-        Text          string                    `json:"text,omitempty"`
-        Value         string                    `json:"value,omitempty"`
+        IsNone   bool   `json:"isNone,omitempty"`
+        Selected bool   `json:"selected,omitempty"`
+        Text     string `json:"text,omitempty"`
+        Value    string `json:"value,omitempty"`
 }
 
 type Times struct {
@@ -84,7 +85,7 @@ func GetDashboard(DashboardUid string) (*Dashboard, error) {
         db := &Dashboard{}
         grafana_conf := configer.ConfigParse()
         C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
-        if err := C.Get(DashboardPath + DashboardUid, db); err != nil {
+        if err := C.Get(DashboardPath+DashboardUid, db); err != nil {
                 info.Println(err)
                 return db, err
         }
