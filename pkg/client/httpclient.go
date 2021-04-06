@@ -1,10 +1,42 @@
 package client
 
 import (
+        "encoding/json"
+        "gopkg.in/ini.v1"
+        "io"
+        "flag"
+        "log"
         "net/http"
         "net/url"
-        "encoding/json"
+        "os"
+        "path"
+        "strings"
 )
+
+var (
+  info *log.Logger
+  ConfigFile = flag.String("config","alert_client.conf","set configuration for this app.")
+)
+
+func init() {
+        arg := path.Base(os.Args[0])
+        logfile := strings.ToLower(arg + ".log")
+        file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+        if err != nil {
+                log.Println("Failed to open file: ", err)
+        }
+        cfg, err := ini.Load(*ConfigFile)
+        if err != nil {
+                info.Println("Fail to read file: ", err)
+                os.Exit(1)
+        }
+        mode := cfg.Section("").Key("mode").In("dev", []string{"dev", "debug", "prd"})
+        if mode == "dev" || mode == "debug" {
+                info = log.New(io.MultiWriter(os.Stdout, file), "Info: ", log.Ldate|log.Ltime|log.Lshortfile)
+        } else if mode == "prd" {
+                info = log.New(file, "Info: ", log.Ldate|log.Ltime|log.Lshortfile)
+        }
+}
 
 type grafana_client struct {
         uri        *url.URL
@@ -15,8 +47,8 @@ type grafana_client struct {
 func NewGrafanaClient(uri, token string) (*grafana_client, error) {
         url, err := url.Parse(uri)
         token = "Bearer " + token
-//        info.Println(url)
-//        info.Println(token)
+        //        info.Println(url)
+        //        info.Println(token)
         if err != nil {
                 info.Println(err)
                 return nil, err
@@ -50,6 +82,6 @@ func (c *grafana_client) Get(path string, v interface{}) error {
                 info.Println(err)
                 return err
         }
-//        log.Println(v)
+        //        log.Println(v)
         return nil
 }
