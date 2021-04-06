@@ -30,9 +30,9 @@ func init() {
         }
         mode := cfg.Section("").Key("mode").In("dev", []string{"dev", "debug", "prd"})
         if mode == "dev" || mode == "debug" {
-                info = log.New(io.MultiWriter(os.Stdout, file), "Info: ", log.Ldate|log.Ltime|log.Lshortfile)
+                info = log.New(io.MultiWriter(os.Stdout, file), "", log.Ldate|log.Ltime|log.Lshortfile)
         } else if mode == "prd" {
-                info = log.New(file, "Info: ", log.Ldate|log.Ltime|log.Lshortfile)
+                info = log.New(file, "", log.Ldate|log.Ltime|log.Lshortfile)
         }
 }
 
@@ -46,7 +46,7 @@ func Emit(state string, msg client.SimpleInfo, b []byte) {
                 if err := send(state, msg, b); err != nil {
                         info.Println(k, "send err: ", err)
                 } else {
-                        info.Println(k, "send message: ")
+                        info.Println(k, "send message. ")
                 }
         }
 }

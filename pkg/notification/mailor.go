@@ -37,14 +37,16 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
         }
         c := timeController(conf.SmtpServer.StartTime, conf.SmtpServer.EndTime)
         if control := <-c; !control {
-                info.Println("scheduler time mail send closed.")
-                return nil
+                err := fmt.Errorf("scheduler time mail send closed.")
+                return err
         }
+        info.Println("Prepare start send mail.")
         mclient, _ := NewMail(conf.SmtpServer.Username, conf.SmtpServer.Password, conf.SmtpServer.SmtpAddress, conf.SmtpServer.Port)
         if err := mclient.Send(state, msg, b); err != nil {
                 info.Println(err)
                 return err
         }
+       info.Println("mail sent.")
         return nil
 }
 
@@ -125,12 +127,14 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
         buffer.WriteString(body)
 
         buffer.WriteString("\r\n--" + boundary + "--")
-        smtp.SendMail(m.host+m.port, m.auth, m.user, message.to, buffer.Bytes())
+        if err := smtp.SendMail(m.host+m.port, m.auth, m.user, message.to, buffer.Bytes());err !=nil{
+            return err
+        }
         return nil
 }
 
 func timeController(start, end string) <-chan bool {
-        c := make(chan bool)
+        c := make(chan bool,1)
         defer close(c)
         var start_time, end_time time.Time
         starthour := strings.Split(start, ":")[0]
@@ -157,12 +161,15 @@ func timeController(start, end string) <-chan bool {
 
         switch {
         case now_time.Before(start_time):
+                info.Println("smtp send time not till.")
                 c <- false
                 return c
         case now_time.After(end_time):
+                info.Println("smtp send time not passed.")
                 c <- false
                 return c
         case now_time.Before(end_time):
+                info.Println("smtp send time.")
                 c <- true
                 return c
         }

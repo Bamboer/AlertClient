@@ -75,6 +75,7 @@ func (d *dingding) SendText(msg string) error {
                 info.Println("err: ", err)
                 return err
         }
+        info.Println(gr)
         return nil
 }
 
@@ -82,6 +83,7 @@ func (d *dingding) Send(state string, msg client.SimpleInfo, b []byte) error {
         // state: alert status
         // msg: send message body
         // b: png format image
+
         data := make(map[string]interface{})
         data["msgtype"] = "markdown"
         data["at"] = map[string]interface{}{"atMobiles": reminders, "isAtAll": true}
@@ -94,6 +96,9 @@ func (d *dingding) Send(state string, msg client.SimpleInfo, b []byte) error {
         }
         reader := bytes.NewReader(mdata)
         req, err := http.NewRequest("POST", d.dApi, reader)
+        if err != nil{
+           info.Println(err)
+        }
         req.Header.Set("Content-Type", "application/json; charset=utf-8")
         resp, err := d.client.Do(req)
         defer resp.Body.Close()
@@ -106,15 +111,17 @@ func (d *dingding) Send(state string, msg client.SimpleInfo, b []byte) error {
                 info.Println("err: ", err)
                 return err
         }
+        info.Println("dingding send result: ",gr)
         return nil
 }
 
 func (d *dingding) RenderMsg(state string, msg client.SimpleInfo) map[string]string {
         var content map[string]string
         if state == "alerting" {
-                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("### Alarm: %s\n> 1.Metric: %s\n> 2.Value: %s\n> 3.Dashboard: %s\n> 4.Alerting: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
+                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("\"### Alarm: %s\n> 1.Metric: %s\n> 2.Value: %V\n> 3.Dashboard: %s\n> 4.Alerting: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n\"", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
         } else if state == "ok" {
                 content = map[string]string{"title": "Recovery", "text": fmt.Sprintf("### Alarm: %s Recovery !\n> 1.Metric: %s\n> 2.Value: %s\n> 3.Dashboard: %s\n> 4.Alerting: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
         }
+        info.Println("dinigding render message: ",content)
         return content
 }
