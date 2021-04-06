@@ -79,14 +79,14 @@ func Alerter() error {
                                 dbInfo[m.DbUid] = s
                                 m.TempVar = s
                         }
-                        alertNum = len(alertDict)
-                        m.AlertNum = &alertNum
                         b, render_url, err := RenderImage(m)
                         if err != nil {
                                 info.Println(err)
                         }
                         m.RenderURL = render_url
                         alertDict[alert.Id] = m
+                        alertNum = len(alertDict)
+                        m.AlertNum = &alertNum
                         notification.Emit("alerting", m, b)
                 }
         }
@@ -99,6 +99,7 @@ func Alerter() error {
                         return err
                 }
                 if alert_info.State == "ok" {
+                        info.Println("Recovery alert: ",alertV.Name)
                         b, render_url, err := RenderImage(alertV)
                         if err != nil {
                                 info.Println(err)
@@ -145,7 +146,7 @@ func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
                 q.Add(k, v)
         }
         req.URL.RawQuery = q.Encode()
-        info.Println("url > ", req.URL.String())
+        info.Println("Render url: ", req.URL.String())
         //request
         resp, err := c.client.Do(req)
         if err != nil {
