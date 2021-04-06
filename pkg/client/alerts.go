@@ -76,7 +76,7 @@ func GetAlerts() ([]Alert, error) {
         //        info.Println(grafana_conf)
         C, _ := NewGrafanaClient(grafana_conf.Grafana_uri, grafana_conf.Grafana_token)
         if err := C.Get(AlertPath, &alerts); err != nil {
-                info.Println(err)
+//                info.Println(err)
                 return alerts, err
         }
         return alerts, nil

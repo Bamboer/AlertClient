@@ -34,7 +34,7 @@ func Alerter() error {
         // Get alert list
         data, err := client.GetAlerts()
         if err != nil {
-                info.Println(err)
+//                info.Println(err)
                 return err
         }
         for _, alert := range data {

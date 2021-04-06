@@ -73,7 +73,7 @@ func (c *grafana_client) Get(path string, v interface{}) error {
         req.Header.Add("Accept", "application/json")
         resp, err := c.httpClient.Do(req)
         if err != nil {
-                info.Println(err)
+//                info.Println(err)
                 return err
         }
         defer resp.Body.Close()
