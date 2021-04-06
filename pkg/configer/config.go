@@ -1,33 +1,17 @@
 package configer
 
 import (
+        "bufio"
         "fmt"
         "io"
         "os"
-        "log"
-        "path"
         "strconv"
         "strings"
         "sync"
         "time"
-        "bufio"
 )
 
-var (
-        DefaultLevel = 1
-        info          *log.Logger
-)
-
-func init(){
-  arg := path.Base(os.Args[0])
-  logfile := strings.ToLower(arg + ".log")
-  file,err := os.OpenFile(logfile,os.O_CREATE|os.O_WRONLY|os.O_APPEND,0666)
-  if err != nil{
-     log.Println("Failed to open file: ",err)
-  }
-  info = log.New(io.MultiWriter(os.Stdout,file),"Info: ",log.Ldate|log.Ltime|log.Lshortfile)
-}
-
+var DEFALTCONF = "alert_client.conf"
 
 type Config struct {
         filename       string
@@ -195,3 +179,25 @@ func (c *Config) reload() {
         }
 }
 
+func ConfigParseCustom() *Obj {
+        configuration := &Obj{}
+        conf, _ := NewConfig(DEFALTCONF)
+        //info.Println(conf)
+        if *ConfigFile != "alert_client.conf" {
+                conf, _ = NewConfig(*ConfigFile)
+        }
+
+        configuration.Dingding, _= conf.GetString("dingding")
+        configuration.Grafana_token, _ = conf.GetString("grafana_token")
+        configuration.Notifications, _ = conf.GetString("notifications")
+        configuration.Notifications_cc, _ = conf.GetString("notifications_cc")
+        configuration.Notifications_bcc, _ = conf.GetString("notifications_bcc")
+        configuration.Grafana_uri, _ = conf.GetString("grafana_uri")
+        configuration.SmtpServer.Username, _ = conf.GetString("username")
+        configuration.SmtpServer.Password, _ = conf.GetString("password")
+        configuration.SmtpServer.SmtpAddress, _ = conf.GetString("smtpAddress")
+        configuration.SmtpServer.Port, _ = conf.GetString("smtpPort")
+        configuration.Alert_log, _ = conf.GetString("alert_log")
+        configuration.Client_log, _ = conf.GetString("client_log")
+        return configuration
+}
