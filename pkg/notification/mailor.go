@@ -25,7 +25,7 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
         notifications  := strings.Split(conf.Notifications,",")
         notifications_cc := strings.Split(conf.Notifications_cc,",")
         notifications_bcc := strings.Split(conf.Notifications_bcc,",")
-        message = &Message{from: conf.SmtpServer.Username,
+        message = &Message{from: "SVoice " + conf.SmtpServer.Username,
                 to:   notifications,
                 cc:   notifications_cc,
                 bcc:  notifications_bcc,
@@ -111,7 +111,7 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
                 //                attachment += "Content-Disposition:attachment\r\n"
                 attachment += "Content-Type:" + message.attachment.ContentType + ";name=\"" + message.attachment.Name + "\"\r\n"
                 attachment += "Content-ID: <" + message.attachment.Name + "> \r\n\r\n"
-                imgsrc = "<p><img src=\"cid:" + message.attachment.Name + "></p><br>\r\n\t\t\t"
+                imgsrc = "<p><img src=\"cid:" + message.attachment.Name + "\"></p>"
                 buffer.WriteString(attachment)
                 defer func() {
                         if err := recover(); err != nil {
@@ -180,29 +180,23 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
         var template string
         if state == "alerting" {
                 template = `
-<html>
-        <body>
                 %s
+
                 <p>Alarm: %s</p><br>
                 <p>Metric: %s</p><br>
                 <p>Value: %s</p><br>
                 <p>Detail: %s</p><br>
-        </body>
-</html>
 `
         }
         if state == "ok" {
                 template = `
-<html>
-        <body>
                 %s
+
                 <p>Alarm: %s Recovery !</p><br>
                 <p>Metric: %s</p><br>
                 <p>Value: %s</p><br>
                 <p>Detail: It\'s least need %s second recovery.</p><br>
                 <p>Time: %s </p><br>
-        </body>
-</html>
 `
         }
         var content = fmt.Sprintf(template, imgsrc, msg.Name, msg.AlertMetrics, msg.AlertValues, strconv.Itoa(msg.Frequency), time.Now().UTC().String())
