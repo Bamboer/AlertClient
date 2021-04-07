@@ -40,13 +40,13 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
                 err := fmt.Errorf("scheduler time mail send closed.")
                 return err
         }
-        info.Println("Prepare start send mail.")
+        info.Println("Prepare send mail.")
         mclient, _ := NewMail(conf.SmtpServer.Username, conf.SmtpServer.Password, conf.SmtpServer.SmtpAddress, conf.SmtpServer.Port)
         if err := mclient.Send(state, msg, b); err != nil {
                 info.Println(err)
                 return err
         }
-       info.Println("mail sent.")
+        info.Println("mail sent.")
         return nil
 }
 
@@ -180,23 +180,29 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
         var template string
         if state == "alerting" {
                 template = `
+<html>
+       <body>
                 %s
-
                 <p>Alarm: %s</p><br>
                 <p>Metric: %s</p><br>
                 <p>Value: %s</p><br>
                 <p>Detail: %s</p><br>
+      </body>
+</html>
 `
         }
         if state == "ok" {
                 template = `
+<html>
+       <body>
                 %s
-
                 <p>Alarm: %s Recovery !</p><br>
                 <p>Metric: %s</p><br>
                 <p>Value: %s</p><br>
                 <p>Detail: It\'s least need %s second recovery.</p><br>
                 <p>Time: %s </p><br>
+       </body>
+</html>
 `
         }
         var content = fmt.Sprintf(template, imgsrc, msg.Name, msg.AlertMetrics, msg.AlertValues, strconv.Itoa(msg.Frequency), time.Now().UTC().String())

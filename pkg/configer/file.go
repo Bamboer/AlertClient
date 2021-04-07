@@ -30,7 +30,8 @@ type Obj struct {
 
         SmtpServer SmtpInfo
         ImgServer  bool
-        ImgServerPort int
+        ImgServerName string
+        ImgServerPort string
         ImgDir     string
 
         DauNotifications string
@@ -94,7 +95,8 @@ func ConfigParse() *Obj {
         configuration.Alert_log = cfg.Section("log").Key("alert_log").String()
 
         configuration.ImgServer,_ = cfg.Section("image_server").Key("server_on").Bool()
-        configuration.ImgServerPort,_ = cfg.Section("image_server").Key("port").Int()
+        configuration.ImgServerName = cfg.Section("image_server").Key("img_server_dns").String()
+        configuration.ImgServerPort = cfg.Section("image_server").Key("port").String()
         configuration.ImgDir = cfg.Section("image_server").Key("img_dir").String()
 
         configuration.DauNotifications = cfg.Section("dau").Key("dau_notifications").String()

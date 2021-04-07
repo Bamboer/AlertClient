@@ -198,6 +198,5 @@ func ConfigParseCustom() *Obj {
         configuration.SmtpServer.SmtpAddress, _ = conf.GetString("smtpAddress")
         configuration.SmtpServer.Port, _ = conf.GetString("smtpPort")
         configuration.Alert_log, _ = conf.GetString("alert_log")
-        configuration.Client_log, _ = conf.GetString("client_log")
         return configuration
 }

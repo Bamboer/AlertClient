@@ -2,6 +2,7 @@ package notification
 
 import (
         "time"
+        "strings"
         "bytes"
         "encoding/json"
         "fmt"
@@ -9,10 +10,10 @@ import (
         "grafana/pkg/configer"
         "net/http"
 )
-
+/*
 func init() {
         SNS["dingding"] = DSend
-}
+}*/
 
 var (
         reminders []string
@@ -118,9 +119,9 @@ func (d *dingding) Send(state string, msg client.SimpleInfo, b []byte) error {
 func (d *dingding) RenderMsg(state string, msg client.SimpleInfo) map[string]string {
         var content map[string]string
         if state == "alerting" {
-                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("### Alarm: %s\n> 1.Metric: %s\n> 2.Value: %v\n> 3.Dashboard: %s\n> 4.AlertingNum: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
+                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("### Alarm: %s \n\n> 1.Metric: %s\n\n> 2.Value: %v\n\n> 3.Dashboard: %s \n\n> 4.AlertingNum: %d\n\n> ![screenshot](%s)\n> ###### %s UTC发布[详情](%s) \n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, msg.RenderURL,strings.Split(time.Now().UTC().String(),".")[0], msg.RenderURL)}
         } else if state == "ok" {
-                content = map[string]string{"title": "Recovery", "text": fmt.Sprintf("### Alarm: %s Recovery !\n> 1.Metric: %s\n> 2.Value: %v\n> 3.Dashboard: %s\n> 4.AlertingNum: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
+                content = map[string]string{"title": "Recovery", "text": fmt.Sprintf("### Alarm: %s Recovery !\n\n> 1.Metric: %s\n\n> 2.Value: %v\n\n> 3.Dashboard: %s\n\n> 4.AlertingNum: %d\n\n> ![screenshot](%s)\n>###### %s UTC发布[详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, msg.ImgURL, strings.Split(time.Now().UTC().String(),".")[0], msg.ImgURL)}
         }
         info.Println("dinigding render message: ",content)
         return content

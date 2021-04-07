@@ -6,6 +6,7 @@ import (
         "time"
         "strconv"
         "io/ioutil"
+        "path/filepath"
         "encoding/json"
         "grafana/pkg/client"
         "grafana/pkg/configer"
@@ -25,6 +26,9 @@ func run() {
         if err := CacheRe();err != nil{
           info.Println(err)
         }
+
+        go client.FileServer()
+
         ticker := time.NewTicker(30 * time.Second)
         for _ = range ticker.C {
                 if err := Alerter(); err != nil {
@@ -87,11 +91,12 @@ func Alerter() error {
                                    info.Println(err)
                                 }
                         }
-                        b, render_url, err := RenderImage(m)
+                        b, render_url,imgurl,err := RenderImage(m)
                         if err != nil {
                                 info.Println(err)
                         }
                         m.RenderURL = render_url
+                        m.ImgURL = imgurl
                         alertDict[alert.Id] = m
                         alertNum = len(alertDict)
                         m.AlertNum = &alertNum
@@ -111,12 +116,13 @@ func Alerter() error {
                 }
                 if alert_info.State == "ok" {
                         info.Println("Recovery alert: ",alertV.Name)
-                        b, render_url, err := RenderImage(alertV)
+                        b, render_url,imgurl, err := RenderImage(alertV)
                         if err != nil {
                                 info.Println(err)
                         }
                         alertNum = len(alertDict) - 1
                         alertV.RenderURL = render_url
+                        alertV.ImgURL = imgurl
                         notification.Emit("ok", alertV, b)
                         delete(alertDict, alertId)
                         if err := CacheSet("alertdict",&alertDict);err != nil{
@@ -127,11 +133,20 @@ func Alerter() error {
         return nil
 }
 
-func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
+func RenderImage(m client.SimpleInfo) ([]byte, string, string, error) {
         //Generator time series for render image
         t1 := int(time.Now().Unix()) * 1000
         t2 := t1 - 3600000
+
+        imgname := m.DbSlug + strconv.Itoa(m.PanelId) + ".png"
         grafana_conf := configer.ConfigParse()
+        imgdir,err:= filepath.Abs(grafana_conf.ImgDir)
+        if err != nil{
+           info.Println(err)
+        }
+        imgpath := filepath.Join(imgdir,imgname)
+        imgurl := "http://" + grafana_conf.ImgServerName + grafana_conf.ImgServerPort + "/" + imgname
+        info.Println("imgurl: ",imgurl)
 
         uri, err := url.Parse(grafana_conf.Grafana_uri)
         if err != nil {
@@ -171,10 +186,14 @@ func RenderImage(m client.SimpleInfo) ([]byte, string, error) {
         b, err := ioutil.ReadAll(resp.Body)
         if err != nil {
                 info.Println("iotuil Read error: ", err)
-                return nil, req.URL.String(), err
+                return nil, req.URL.String(),imgurl, err
         }
-        return b, req.URL.String(), nil
+       if err := ioutil.WriteFile(imgpath,b,0644);err !=nil{
+            info.Println(err)
+       }
+        return b, req.URL.String(),imgurl, nil
 }
+
 type Render struct{
   uri    *url.URL
   token  string
@@ -221,7 +240,10 @@ func CacheRe()error{
 }
 
 func CacheSet(name string,v interface{})error{
-   p,_ := json.Marshal(v)
+   p,err := json.Marshal(v)
+   if err != nil{
+     info.Println(err)
+   }
    c,err := redis.Dial("tcp",RedisServer)
    if err != nil{
      return err

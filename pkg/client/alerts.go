@@ -65,9 +65,10 @@ type SimpleInfo struct {
         DbUid        string
         DbSlug       string
         Frequency    int
-        AlertNum  *int
+        AlertNum     *int
         TempVar      map[string]string
         RenderURL    string
+        ImgURL       string
 }
 
 func GetAlerts() ([]Alert, error) {
