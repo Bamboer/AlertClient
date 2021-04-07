@@ -4,6 +4,7 @@ import (
         "context"
         "fmt"
         "grafana/pkg/notification"
+        "grafana/pkg/configer"
         "time"
         //  "github.com/aws/aws-sdk-go-v2/aws"
         "github.com/aws/aws-sdk-go-v2/config"
@@ -38,7 +39,8 @@ func EventCheck(ctx context.Context) {
 
 func Event() []string {
         events := []string{}
-        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-northeast-2"))
+        conf := configer.ConfigParse()
+        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(conf.AWSRegion))
         if err != nil {
                 info.Fatalf("unable to load SDK config, %v", err)
         }

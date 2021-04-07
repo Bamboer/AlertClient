@@ -19,6 +19,7 @@ var (
 type Obj struct {
         Mode                string
         Dingding            string
+        AWSRegion           string
         RedisServer         string
         Grafana_token       string
         Grafana_uri         string
@@ -77,6 +78,7 @@ func ConfigParse() *Obj {
         }
         configuration.Mode = cfg.Section("").Key("mode").In("dev", []string{"dev", "debug", "prd"})
         configuration.Dingding = cfg.Section("").Key("dingding").String()
+        configuration.AWSRegion = cfg.Section("").Key("aws_region").String()
         configuration.RedisServer = cfg.Section("").Key("redis_server").String()
         configuration.Grafana_token = cfg.Section("grafana").Key("grafana_token").String()
         configuration.Grafana_uri = cfg.Section("grafana").Key("grafana_uri").String()
