@@ -38,7 +38,7 @@ func EventCheck(ctx context.Context) {
 
 func Event() []string {
         events := []string{}
-        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-northeast-2"))
+        cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("cn-north-1"))
         if err != nil {
                 info.Fatalf("unable to load SDK config, %v", err)
         }
