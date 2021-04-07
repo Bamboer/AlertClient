@@ -6,10 +6,11 @@ import (
         "time"
         "strconv"
         "io/ioutil"
-        //  "image/png"
+        "encoding/json"
         "grafana/pkg/client"
         "grafana/pkg/configer"
         "grafana/pkg/notification"
+        "github.com/gomodule/redigo/redis"
 )
 
 var (
@@ -17,9 +18,13 @@ var (
         dbInfo      = map[string]map[string]string{}
         timeSeries  = map[int][]time.Time{}
         alertNum = 0
+        RedisServer string
 )
 
 func run() {
+        if err := CacheRe();err != nil{
+          info.Println(err)
+        }
         ticker := time.NewTicker(30 * time.Second)
         for _ = range ticker.C {
                 if err := Alerter(); err != nil {
@@ -78,6 +83,9 @@ func Alerter() error {
                                 }
                                 dbInfo[m.DbUid] = s
                                 m.TempVar = s
+                                if err := CacheSet("dbinfo",&dbInfo);err != nil{
+                                   info.Println(err)
+                                }
                         }
                         b, render_url, err := RenderImage(m)
                         if err != nil {
@@ -88,6 +96,9 @@ func Alerter() error {
                         alertNum = len(alertDict)
                         m.AlertNum = &alertNum
                         notification.Emit("alerting", m, b)
+                        if err := CacheSet("alertdict",&alertDict);err != nil{
+                            info.Println(err)
+                        }
                 }
         }
 
@@ -108,6 +119,9 @@ func Alerter() error {
                         alertV.RenderURL = render_url
                         notification.Emit("ok", alertV, b)
                         delete(alertDict, alertId)
+                        if err := CacheSet("alertdict",&alertDict);err != nil{
+                            info.Println(err)
+                        }
                 }
         }
         return nil
@@ -179,4 +193,43 @@ func NewRender(uri ,token string)(*Render,error){
        token:  token,
        client: &http.Client{},
    },nil
+}
+
+func CacheRe()error{
+   RedisServer = configer.ConfigParse().RedisServer
+   c,err := redis.Dial("tcp",RedisServer)
+   if err != nil{
+     info.Println(err)
+     return err
+   }
+   defer c.Close()
+   if alertdict,err := c.Do("get","alertdict");err != nil{
+      info.Println(err)
+   }else{
+      if v,ok := alertdict.([]byte);ok{
+            json.Unmarshal(v,&alertDict)
+      }
+   }
+   if dbinfo,err := c.Do("get","dbinfo");err != nil{
+      info.Println(err)
+   }else{
+      if v,ok := dbinfo.([]byte);ok{
+            json.Unmarshal(v,&dbInfo)
+      }
+   }
+   return nil
+}
+
+func CacheSet(name string,v interface{})error{
+   p,_ := json.Marshal(v)
+   c,err := redis.Dial("tcp",RedisServer)
+   if err != nil{
+     return err
+   }
+   defer c.Close()
+   if _,err := c.Do("set",name,p);err != nil{
+      return err
+   }
+   info.Println("set ",name,"to cache server successed.")
+   return nil
 }
