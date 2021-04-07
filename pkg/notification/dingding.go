@@ -118,9 +118,9 @@ func (d *dingding) Send(state string, msg client.SimpleInfo, b []byte) error {
 func (d *dingding) RenderMsg(state string, msg client.SimpleInfo) map[string]string {
         var content map[string]string
         if state == "alerting" {
-                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("\"### Alarm: %s\n> 1.Metric: %s\n> 2.Value: %V\n> 3.Dashboard: %s\n> 4.Alerting: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n\"", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
+                content = map[string]string{"title": "Alarm", "text": fmt.Sprintf("### Alarm: %s\n> 1.Metric: %s\n> 2.Value: %v\n> 3.Dashboard: %s\n> 4.AlertingNum: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
         } else if state == "ok" {
-                content = map[string]string{"title": "Recovery", "text": fmt.Sprintf("### Alarm: %s Recovery !\n> 1.Metric: %s\n> 2.Value: %s\n> 3.Dashboard: %s\n> 4.Alerting: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
+                content = map[string]string{"title": "Recovery", "text": fmt.Sprintf("### Alarm: %s Recovery !\n> 1.Metric: %s\n> 2.Value: %v\n> 3.Dashboard: %s\n> 4.AlertingNum: %d\n> 5.Time: %s\n> ![screenshot](%s)\n> [详情](%s)\n", msg.Name, msg.AlertMetrics, msg.AlertValues, msg.DbSlug, *msg.AlertNum, time.Now().UTC().String(), msg.RenderURL, msg.RenderURL)}
         }
         info.Println("dinigding render message: ",content)
         return content
