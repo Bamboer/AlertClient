@@ -19,9 +19,9 @@ var (
 type Obj struct {
         Mode                string
         Dingding            string
+        RedisServer         string
         Grafana_token       string
         Grafana_uri         string
-        NotificationsLeader string
 
         Notifications     string
         Notifications_cc  string
@@ -29,9 +29,13 @@ type Obj struct {
         Notifications_dau string
 
         SmtpServer SmtpInfo
+        ImgServer  bool
+        ImgServerPort int
+        ImgDir     string
 
+        DauNotifications string
+        DauTpPath   string
         Alert_log  string
-        Client_log string
 }
 
 type SmtpInfo struct {
@@ -72,13 +76,13 @@ func ConfigParse() *Obj {
         }
         configuration.Mode = cfg.Section("").Key("mode").In("dev", []string{"dev", "debug", "prd"})
         configuration.Dingding = cfg.Section("").Key("dingding").String()
+        configuration.RedisServer = cfg.Section("").Key("redis_server").String()
         configuration.Grafana_token = cfg.Section("grafana").Key("grafana_token").String()
         configuration.Grafana_uri = cfg.Section("grafana").Key("grafana_uri").String()
 
         configuration.Notifications = cfg.Section("email").Key("notifications").String()
         configuration.Notifications_cc = cfg.Section("email").Key("notifications_cc").String()
         configuration.Notifications_bcc = cfg.Section("email").Key("notifications_bcc").String()
-        configuration.Notifications_dau = cfg.Section("email").Key("notifications_dau").String()
 
         configuration.SmtpServer.Username = cfg.Section("smtp_server").Key("username").String()
         configuration.SmtpServer.Password = cfg.Section("smtp_server").Key("password").String()
@@ -88,7 +92,13 @@ func ConfigParse() *Obj {
         configuration.SmtpServer.EndTime = cfg.Section("smtp_server").Key("end_time").String()
 
         configuration.Alert_log = cfg.Section("log").Key("alert_log").String()
-        configuration.Client_log = cfg.Section("log").Key("client_log").String()
+
+        configuration.ImgServer,_ = cfg.Section("image_server").Key("server_on").Bool()
+        configuration.ImgServerPort,_ = cfg.Section("image_server").Key("port").Int()
+        configuration.ImgDir = cfg.Section("image_server").Key("img_dir").String()
+
+        configuration.DauNotifications = cfg.Section("dau").Key("dau_notifications").String()
+        configuration.DauTpPath = cfg.Section("dau").Key("dau_tp_path").String()
 //        info.Println("configuration: ",configuration)
         return configuration
 }
