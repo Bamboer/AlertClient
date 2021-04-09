@@ -27,13 +27,13 @@ func EventCheck(ctx context.Context) {
                                 }
                         }
                 }
-                time.Sleep(24 * time.Hour)
                 select {
                 case <-ctx.Done():
                         info.Println("done")
                         return
                 default:
                 }
+                time.Sleep(24 * time.Hour)
         }
 }
 
