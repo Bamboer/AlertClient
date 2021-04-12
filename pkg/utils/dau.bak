@@ -1,94 +1,163 @@
-package utils
+package main
+
 import(
-"github.com/influxdata/influxdb/client/v2"
+  "fmt"
+  "time"
+  "context"
+  "net/http"
+  "net/url"
+  "io/ioutil"
+  "encoding/json"
+  "path/filepath"
+  "html/template"
+//  "grafana/pkg/configer"
+  "github.com/aws/aws-sdk-go-v2/aws"
+  "github.com/aws/aws-sdk-go-v2/config"
+  "github.com/aws/aws-sdk-go-v2/service/cloudwatch"
+  "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
 )
-func init(){
 
+
+var(
+  GraphiteURL = "http://10.50.24.197:7001/render"
+  User = "8bf3584d"
+  Pwd  = "6f30e011"
+  _,wk := time.Now().ISOWeek()
+  DReport =  DailyReport{
+         Timer: time.Now(),
+         WK:    wk,
 }
-
-const (
-  MyDB = "telegraf"
 )
 
-func Dau()error{
-  conn := connInflux()
-  WritesPoints(conn)
-  
-  //获取10条数据并展示
-  qs := fmt.Sprintf("SELECT * FROM %s LIMIT %d", MyMeasurement, 10) 
-  res, err := QueryDB(conn, qs)
-	if err != nil {
-		info.Fatal(err)
-	}
- 
-	for i, row := range res[0].Series[0].Values {
-		t, err := time.Parse(time.RFC3339, row[0].(string))
-		if err != nil {
-			log.Fatal(err)
-		}
-		//fmt.Println(reflect.TypeOf(row[1]))
-		valu := row[2].(json.Number)
-		info.Printf("[%2d] %s: %s\n", i, t.Format(time.Stamp), valu)
-	}
+type Tres struct{
+ Datapoints [][]float64
+ Target  string
 }
 
-func connInflux() client.Client {
-	cli, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr:     "http://127.0.0.1:8086",
-		Username: username,
-		Password: password,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	return cli
+type DailyReport struct{
+  Timer  time.Time
+  WK     int
+  WeekDay map[int]DayData
 }
 
-//query
-func QueryDB(cli client.Client, cmd string) (res []client.Result, err error) {
-	q := client.Query{
-		Command:  cmd,
-		Database: MyDB,
-	}
-	if response, err := cli.Query(q); err == nil {
-		if response.Error() != nil {
-			return res, response.Error()
-		}
-		res = response.Results
-	} else {
-		return res, err
-	}
-	return res, nil
+type DayData struct{
+  Access  int
+  Health  int
 }
-//Insert
-func WritesPoints(cli client.Client) {
-	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  MyDB,
-		Precision: "s",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
- 
-	tags := map[string]string{"cpu": "ih-cpu"}
-	fields := map[string]interface{}{
-		"idle":   20.1,
-		"system": 43.3,
-		"user":   86.6,
-	}
- 
-	pt, err := client.NewPoint(
-		"cpu_usage",
-		tags,
-		fields,
-		time.Now(),
-	)
-	if err != nil {
-		info.Fatal(err)
-	}
-	bp.AddPoint(pt)
- 
-	if err := cli.Write(bp); err != nil {
-		info.Fatal(err)
-	}
+
+type Dimension struct{
+  Name *string
+  Value *string
 }
+
+func main(){
+//  conf := configer.ConfigParse()
+  tpPath := "./dau.tp"
+  absPath,err := filepath.Abs(tpPath)
+  if err != nil{
+     fmt.Println(err)
+  }
+  tp,err := template.ParseFiles(absPath)
+  if err != nil{
+     fmt.Println(err)
+  }
+  fmt.Println("template: ",tp)
+  access,err := Access()
+  if err != nil{
+    fmt.Println(err)
+  }
+  health,err := Health()
+  if err != nil{
+    fmt.Println(err)
+  }
+}
+
+func Access()(map[int]int,error){
+  data := map[int]int{}
+  t := time.Now()
+  st := time.Date(t.Year(),t.Month(),t.Day()-6,0,0,0,0,time.Local)
+  et := time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local)
+  cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("cn-north-1"))
+  if err != nil {
+          fmt.Println("unable to load SDK config, %v", err)
+          return data,err
+  }
+  client := cloudwatch.NewFromConfig(cfg)
+  input := &cloudwatch.GetMetricStatisticsInput{
+      StartTime : aws.Time(st),
+      EndTime : aws.Time(et),
+      MetricName: aws.String("RequestCount"),
+      Namespace: aws.String("AWS/ELB"),
+      Period: aws.Int32(86400),
+      Dimensions: []types.Dimension{{Name: aws.String("LoadBalancerName"),Value: aws.String("ec2-n66-svoice-cn-rel1")}},
+      Statistics: []types.Statistic{types.StatisticSum},
+  }
+  output,err := client.GetMetricStatistics(context.Background(),input)
+  if err != nil {
+    return data,err
+  }
+  for _,v := range output.Datapoints{
+    data[int((*v.Timestamp).Unix())] = int(*v.Sum)
+  }
+  //fmt.Println(time.Unix(int64(1.617408e+09),0))
+  return data,nil
+}
+
+func Health()(map[int]int,error){
+  gr := []Tres{}
+  data := map[int]int{}
+  c,_ := NewRender(GraphiteURL,User,Pwd)
+  req,err := http.NewRequest("GET",c.uri.String(),nil)
+  if err != nil{
+    return data,err
+  }
+  req.SetBasicAuth(c.user,c.password)
+
+  q := req.URL.Query()
+  q.Add("target",`alias(summarize(averageSeries(ec2-cn-north-1-svoice-idg-rel.timers.application.dummy-client.*.*vdt.health.mean, *), "1d", "avg", false), "Overall ")`)
+  q.Add("from","-144hours")
+  q.Add("format","json")
+  req.URL.RawQuery = q.Encode()
+//  fmt.Println("Render url: ", req.URL.String())
+  resp, err := c.client.Do(req)
+  if err != nil {
+      return data,err
+  }
+  defer resp.Body.Close()
+
+  b,err := ioutil.ReadAll(resp.Body)
+  if err != nil{
+      return data,err
+  }
+  if err := json.Unmarshal(b,&gr);err != nil{
+      return data,err
+  }
+  for _, v := range gr[0].Datapoints{
+      data[int(v[1])] = int(v[0])
+  }
+  return data,nil
+//  t := time.Unix(int64(1.617408e+09),0)
+}
+
+
+type Render struct{
+  uri    *url.URL
+  user   string
+  password string
+  client *http.Client
+}
+
+func NewRender(uri, user,password string)(*Render,error){
+   url,err := url.Parse(uri)
+   if err != nil{
+     fmt.Println("Error: ",err)
+     return nil,err
+   }
+   return &Render{
+       uri : url,
+       user: user,
+       password: password,
+       client: &http.Client{},
+   },nil
+}
+
