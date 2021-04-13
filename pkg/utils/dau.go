@@ -10,7 +10,7 @@ import(
   "encoding/json"
   "path/filepath"
   "html/template"
-//  "grafana/pkg/configer"
+  "grafana/pkg/configer"
   "github.com/aws/aws-sdk-go-v2/aws"
   "github.com/aws/aws-sdk-go-v2/config"
   "github.com/aws/aws-sdk-go-v2/service/cloudwatch"
@@ -26,6 +26,7 @@ var(
   DReport =  DailyReport{
          Timer: time.Now(),
          WK:    wk,
+    WeekDay: DayData{},
 }
 )
 
@@ -45,14 +46,11 @@ type DayData struct{
   Health  int
 }
 
-type Dimension struct{
-  Name *string
-  Value *string
-}
-
-func main(){
-//  conf := configer.ConfigParse()
-  tpPath := "./dau.tp"
+func DAU(b bytes.Buffer)error{
+  conf := configer.ConfigParse()
+  tpPath := conf.DauTpPath
+  elb := conf.AWSELBName
+  region := conf.AWSRegion
   absPath,err := filepath.Abs(tpPath)
   if err != nil{
      fmt.Println(err)
@@ -61,7 +59,6 @@ func main(){
   if err != nil{
      fmt.Println(err)
   }
-  fmt.Println("template: ",tp)
   access,err := Access()
   if err != nil{
     fmt.Println(err)
@@ -72,12 +69,12 @@ func main(){
   }
 }
 
-func Access()(map[int]int,error){
+func Access(region,elb string)(map[int]int,error){
   data := map[int]int{}
   t := time.Now()
   st := time.Date(t.Year(),t.Month(),t.Day()-6,0,0,0,0,time.Local)
   et := time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local)
-  cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("cn-north-1"))
+  cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
   if err != nil {
           fmt.Println("unable to load SDK config, %v", err)
           return data,err
@@ -89,7 +86,7 @@ func Access()(map[int]int,error){
       MetricName: aws.String("RequestCount"),
       Namespace: aws.String("AWS/ELB"),
       Period: aws.Int32(86400),
-      Dimensions: []types.Dimension{{Name: aws.String("LoadBalancerName"),Value: aws.String("ec2-n66-svoice-cn-rel1")}},
+      Dimensions: []types.Dimension{{Name: aws.String("LoadBalancerName"),Value: aws.String(elb)}},
       Statistics: []types.Statistic{types.StatisticSum},
   }
   output,err := client.GetMetricStatistics(context.Background(),input)
