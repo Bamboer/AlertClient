@@ -67,6 +67,14 @@ func DAU(b bytes.Buffer)error{
   if err != nil{
     fmt.Println(err)
   }
+  t := time.Now()
+  td := t.Weekday()
+  tnow := int(time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.UTC).Unix())
+  for i := 1;i <= int(td);i++{
+    t1 := tnow - i*86400
+    
+  }
+  
 }
 
 func Access(region,elb string)(map[int]int,error){
