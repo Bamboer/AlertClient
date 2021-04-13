@@ -103,7 +103,7 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
         Header["Mime-Version"] = "1.0"
         Header["Date"] = time.Now().UTC().String()
 
-        m.writeHeader(buffer, Header)
+        m.WriteHeader(buffer, Header)
 
         if message.Attachment.WithFile {
                 attachment := "\r\n--" + boundary + "\r\n"
@@ -118,7 +118,7 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
                                 info.Println("Error: ", err)
                         }
                 }()
-                m.writeFile(buffer, b)
+                m.WriteFile(buffer, b)
         }
 
         body := "\r\n--" + boundary + "\r\n"
@@ -210,7 +210,7 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
         return content
 }
 
-func (m *mailor) writeHeader(buffer *bytes.Buffer, Header map[string]string) string {
+func (m *mailor) WriteHeader(buffer *bytes.Buffer, Header map[string]string) string {
         header := ""
         for key, value := range Header {
                 header += key + ":" + value + "\r\n"
@@ -220,7 +220,7 @@ func (m *mailor) writeHeader(buffer *bytes.Buffer, Header map[string]string) str
         return header
 }
 
-func (m *mailor) writeFile(buffer *bytes.Buffer, b []byte) {
+func (m *mailor) WriteFile(buffer *bytes.Buffer, b []byte) {
         payload := make([]byte, base64.StdEncoding.EncodedLen(len(b)))
         base64.StdEncoding.Encode(payload, b)
         buffer.WriteString("\r\n")
