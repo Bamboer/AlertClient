@@ -25,17 +25,17 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
         notifications  := strings.Split(conf.Notifications,",")
         notifications_cc := strings.Split(conf.Notifications_cc,",")
         notifications_bcc := strings.Split(conf.Notifications_bcc,",")
-        message = &Message{from: "SVoice " + conf.SmtpServer.Username,
-                to:   notifications,
-                cc:   notifications_cc,
-                bcc:  notifications_bcc,
-                attachment: Attachment{
+        message = &Message{From: "SVoice " + conf.SmtpServer.Username,
+                To:   notifications,
+                Cc:   notifications_cc,
+                Bcc:  notifications_bcc,
+                Attachment: Attachment{
                         WithFile:    true,
                         ContentType: "image/png",
                         Name:        "graph.png",
                 },
         }
-        c := timeController(conf.SmtpServer.StartTime, conf.SmtpServer.EndTime)
+        c := TimeController(conf.SmtpServer.StartTime, conf.SmtpServer.EndTime)
         if control := <-c; !control {
                 err := fmt.Errorf("scheduler time mail send closed.")
                 return err
@@ -51,22 +51,22 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
 }
 
 type mailor struct {
-        user     string
-        password string
-        host     string
-        port     string
-        auth     smtp.Auth
+        User     string
+        Password string
+        Host     string
+        Port     string
+        Auth     smtp.Auth
 }
 
 type Message struct {
-        from        string
-        to          []string
-        cc          []string
-        bcc         []string
-        subject     string
-        body        string
-        contentType string
-        attachment  Attachment
+        From        string
+        To          []string
+        Cc          []string
+        Bcc         []string
+        Subject     string
+        Body        string
+        ContentType string
+        Attachment  Attachment
 }
 
 type Attachment struct {
@@ -78,11 +78,11 @@ type Attachment struct {
 func NewMail(username, password, smtpServer, port string) (*mailor, error) {
         auth := smtp.PlainAuth("", username, password, smtpServer)
         return &mailor{
-                user:     username,
-                password: password,
-                host:     smtpServer,
-                port:     port,
-                auth:     auth,
+                User:     username,
+                Password: password,
+                Host:     smtpServer,
+                Port:     port,
+                Auth:     auth,
         }, nil
 }
 
@@ -91,10 +91,10 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
         buffer := bytes.NewBuffer(nil)
         boundary := "BamboerBoundary"
         Header := make(map[string]string)
-        Header["From"] = message.from
-        Header["To"] = strings.Join(message.to, ";")
-        Header["Cc"] = strings.Join(message.cc, ";")
-        Header["Bcc"] = strings.Join(message.bcc, ";")
+        Header["From"] = message.From
+        Header["To"] = strings.Join(message.To, ";")
+        Header["Cc"] = strings.Join(message.Cc, ";")
+        Header["Bcc"] = strings.Join(message.Bcc, ";")
         Header["Subject"] = msg.Name
         if state == "ok" {
                 Header["Subject"] = msg.Name + " Recovery !"
@@ -127,13 +127,13 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
         buffer.WriteString(body)
 
         buffer.WriteString("\r\n--" + boundary + "--")
-        if err := smtp.SendMail(m.host+m.port, m.auth, m.user, message.to, buffer.Bytes());err !=nil{
+        if err := smtp.SendMail(m.Host+m.Port, m.Auth, m.User, message.To, buffer.Bytes());err !=nil{
             return err
         }
         return nil
 }
 
-func timeController(start, end string) <-chan bool {
+func TimeController(start, end string) <-chan bool {
         c := make(chan bool,1)
         defer close(c)
         var start_time, end_time time.Time
