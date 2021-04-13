@@ -40,7 +40,7 @@ func MSend(state string, msg client.SimpleInfo, b []byte) error {
                 err := fmt.Errorf("scheduler time mail send closed.")
                 return err
         }
-        info.Println("Prepare send mail.")
+
         mclient, _ := NewMail(conf.SmtpServer.Username, conf.SmtpServer.Password, conf.SmtpServer.SmtpAddress, conf.SmtpServer.Port)
         if err := mclient.Send(state, msg, b); err != nil {
                 info.Println(err)
@@ -105,13 +105,13 @@ func (m *mailor) Send(state string, msg client.SimpleInfo, b []byte) error {
 
         m.writeHeader(buffer, Header)
 
-        if message.attachment.WithFile {
+        if message.Attachment.WithFile {
                 attachment := "\r\n--" + boundary + "\r\n"
                 attachment += "Content-Transfer-Encoding:base64\r\n"
                 //                attachment += "Content-Disposition:attachment\r\n"
-                attachment += "Content-Type:" + message.attachment.ContentType + ";name=\"" + message.attachment.Name + "\"\r\n"
-                attachment += "Content-ID: <" + message.attachment.Name + "> \r\n\r\n"
-                imgsrc = "<p><img src=\"cid:" + message.attachment.Name + "\"></p>"
+                attachment += "Content-Type:" + message.Attachment.ContentType + ";name=\"" + message.Attachment.Name + "\"\r\n"
+                attachment += "Content-ID: <" + message.Attachment.Name + "> \r\n\r\n"
+                imgsrc = "<p><img src=\"cid:" + message.Attachment.Name + "\"></p>"
                 buffer.WriteString(attachment)
                 defer func() {
                         if err := recover(); err != nil {
@@ -183,10 +183,11 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
 <html>
        <body>
                 %s
-                <p>Alarm: %s</p><br>
-                <p>Metric: %s</p><br>
-                <p>Value: %s</p><br>
-                <p>Detail: %s</p><br>
+                <p>Alarm: %s</p>
+                <p>Metric: %s</p>
+                <p>Value: %v</p>
+                <p>Detail: It's need %v second at least to recovery.</p>
+                <p>Time: %v </p>
       </body>
 </html>
 `
@@ -196,11 +197,11 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
 <html>
        <body>
                 %s
-                <p>Alarm: %s Recovery !</p><br>
-                <p>Metric: %s</p><br>
-                <p>Value: %s</p><br>
-                <p>Detail: It\'s least need %s second recovery.</p><br>
-                <p>Time: %s </p><br>
+                <p>Alarm: %s Recovery !</p>
+                <p>Metric: %s</p>
+                <p>Value: %v</p>
+                <p>Detail: It's need %v second at least to recovery.</p>
+                <p>Time: %v </p>
        </body>
 </html>
 `
