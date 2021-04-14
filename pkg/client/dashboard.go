@@ -34,7 +34,7 @@ type Metainfo struct {
 type Dashboardinfo struct {
         Annotations   interface{}            `json:"annotations"`
         Editable      bool                   `json:"editable"`
-        GnetId        string                 `json:"gnetId"`
+        GnetId        int                    `json:"gnetId"`
         GraphTooltip  int                    `json:"graphTooltip"`
         Id            int                    `json:"id"`
         Links         []string               `json:"links,omitempty"`
