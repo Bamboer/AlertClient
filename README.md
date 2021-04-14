@@ -8,4 +8,4 @@ Here is a grafana alert client for grafana version 6.+
 * Support Grafana Image Render in notification
 
 ### Mail Demo
-![demo](http://www.github.com/Bamboer/AlertClient/img/demo.jpeg "百度logo")  
+![demo](https://github.com/Bamboer/AlertClient/blob/main/img/demo.jpeg "demo")  
