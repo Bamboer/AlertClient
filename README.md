@@ -3,7 +3,7 @@ Here is a grafana alert client for grafana version 6.+
 
 ### Functions
 * Grafana alerts duplicate removal
-* Support DingDing and Maile Notification
+* Support DingDing and Mail Notification
 * Support AWS ELB PQD 
 * Support Grafana Image Render in notification
 
