@@ -1,9 +1,10 @@
 package utils
 
 import(
-  "os"
-  "fmt"
   "time"
+  "bytes"
+  "strings"
+  "strconv"
   "context"
   "net/http"
   "net/url"
@@ -59,7 +60,7 @@ func DAU(ctx context.Context){
         }
         for {
             if time.Now().Hour() == 0{
-              if err := GImage();err != nil{
+              if err := RenderDau();err != nil{
                  info.Println(err)
               }
             }
@@ -75,13 +76,12 @@ func DAU(ctx context.Context){
 
 
 func MailSend(b []byte)error{
-        var imgsrc string
         buffer := bytes.NewBuffer(nil)
         conf := configer.ConfigParse()
         notifications  := strings.Split(conf.Notifications,",")
         notifications_cc := strings.Split(conf.Notifications_cc,",")
         notifications_bcc := strings.Split(conf.Notifications_bcc,",")
-        message = &notification.Message{From: "SVoice " + conf.SmtpServer.Username,
+        message := &notification.Message{From: "SVoice " + conf.SmtpServer.Username,
                 To:   notifications,
                 Cc:   notifications_cc,
                 Bcc:  notifications_bcc,
@@ -94,31 +94,30 @@ func MailSend(b []byte)error{
         m, _ := notification.NewMail(conf.SmtpServer.Username, conf.SmtpServer.Password, conf.SmtpServer.SmtpAddress, conf.SmtpServer.Port)
         boundary := "BamboerBoundary"
         Header := make(map[string]string)
-        Header["From"] = message.from
-        Header["To"] = strings.Join(message.to, ";")
-        Header["Cc"] = strings.Join(message.cc, ";")
-        Header["Bcc"] = strings.Join(message.bcc, ";")
+        Header["From"] = message.From
+        Header["To"] = strings.Join(message.To, ";")
+        Header["Cc"] = strings.Join(message.Cc, ";")
+        Header["Bcc"] = strings.Join(message.Bcc, ";")
         Header["Subject"] = "SVoice  Daily Report"
         Header["Content-Type"] = "multipart/related;boundary=" + boundary
 //        Header["Mime-Version"] = "1.0"
 //        Header["Date"] = time.Now().UTC().String()
 
-        m.writeHeader(buffer, Header)
+        m.WriteHeader(buffer, Header)
 
-        if message.attachment.WithFile {
+        if message.Attachment.WithFile {
                 attachment := "\r\n--" + boundary + "\r\n"
                 attachment += "Content-Transfer-Encoding:base64\r\n"
                 //                attachment += "Content-Disposition:attachment\r\n"
-                attachment += "Content-Type:" + message.attachment.ContentType + ";name=\"" + message.attachment.Name + "\"\r\n"
-                attachment += "Content-ID: <" + message.attachment.Name + "> \r\n\r\n"
-                imgsrc = "<p><img src=\"cid:" + message.attachment.Name + "\"></p>"
+                attachment += "Content-Type:" + message.Attachment.ContentType + ";name=\"" + message.Attachment.Name + "\"\r\n"
+                attachment += "Content-ID: <" + message.Attachment.Name + "> \r\n\r\n"
                 buffer.WriteString(attachment)
                 defer func() {
                         if err := recover(); err != nil {
                                 info.Println("Error: ", err)
                         }
                 }()
-                m.writeFile(buffer, b)
+                m.WriteFile(buffer, b)
         }
 
         body := "\r\n--" + boundary + "\r\n"
@@ -145,11 +144,11 @@ func GHtml(b *bytes.Buffer)error{
 
   access,err := Access(region,elb)
   if err != nil{
-    fmt.Println(err)
+    info.Println(err)
   }
   health,err := Health()
   if err != nil{
-    fmt.Println(err)
+    info.Println(err)
   }
 
   t := time.Now()
@@ -170,11 +169,11 @@ func GHtml(b *bytes.Buffer)error{
 
   absPath,err := filepath.Abs(tpPath)
   if err != nil{
-     fmt.Println(err)
+     info.Println(err)
   }
   tp,err := template.ParseFiles(absPath)
   if err != nil{
-     fmt.Println(err)
+     info.Println(err)
   }
   if err := tp.Execute(b, DReport);err != nil{
      return err
@@ -189,7 +188,7 @@ func Access(region,elb string)(map[int]int,error){
   et := time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local)
   cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
   if err != nil {
-          fmt.Println("unable to load SDK config, %v", err)
+          info.Println("unable to load SDK config, %v", err)
           return data,err
   }
   client := cloudwatch.NewFromConfig(cfg)
@@ -257,7 +256,7 @@ type Render struct{
 func NewRender(uri, user,password string)(*Render,error){
    url,err := url.Parse(uri)
    if err != nil{
-     fmt.Println("Error: ",err)
+     info.Println("Error: ",err)
      return nil,err
    }
    return &Render{
@@ -280,7 +279,7 @@ func RenderDau()error{
         }
         token := "Bearer " + grafana_conf.Grafana_token
         uri.Path = "/render/d-solo/" + "000000221" + "/" + "user-count"
-        c,_ := NewRender(grafana_conf.Grafana_uri,token)
+        c,_ := newrender(grafana_conf.Grafana_uri,token)
         req, err := http.NewRequest("GET", uri.String(), nil)
         if err != nil {
                 info.Println("request generator error: ", err)
@@ -316,4 +315,23 @@ func RenderDau()error{
                 return err
         }
         return  nil
+}
+type render struct{
+  uri    *url.URL
+  token  string
+  client *http.Client
+}
+
+func newrender(uri ,token string)(*render,error){
+   url,err := url.Parse(uri)
+   if err != nil{
+     info.Println("Error: ",err)
+     return nil,err
+   }
+   token = "Bearer " + token
+   return &render{
+       uri : url,
+       token:  token,
+       client: &http.Client{},
+   },nil
 }
