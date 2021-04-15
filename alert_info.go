@@ -58,8 +58,14 @@ func Alerter() error {
                         m.DbSlug = alert.DashboardSlug
                         //Scan the alerting data
                         for _, v := range alert.EvalData.EvalMatches {
-                                m.AlertMetrics = m.AlertMetrics + v.Metric
-                                m.AlertValues = append(m.AlertValues,v.Value)
+                                m.AlertMetrics = m.AlertMetrics +" " + v.Metric
+                                value,err := strconv.ParseFloat(fmt.Sprintf("%.2f",v.Value),32)
+                                if err != nil{
+                                    m.AlertValues = append(m.AlertValues,v.Value)
+                                 }else{
+                                    m.AlertValues = append(m.AlertValues,float32(value))
+                                 }
+
                         }
                         //Get alert item detail info
                         alert_info, err := client.GetAlert(strconv.Itoa(alert.Id))
