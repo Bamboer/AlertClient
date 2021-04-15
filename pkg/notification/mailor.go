@@ -178,6 +178,8 @@ func TimeController(start, end string) <-chan bool {
 
 func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
         var template string
+        var content  string
+        tnow := strings.Split(time.Now().UTC().String(),".")[0]
         if state == "alerting" {
                 template = `
 <html>
@@ -187,10 +189,11 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
                 <p>Metric: %s</p>
                 <p>Value: %v</p>
                 <p>Detail: It's need %v second at least to recovery.</p>
-                <p>Time: %v </p>
+                <p>Time: %v UTC</p>
       </body>
 </html>
 `
+                content = fmt.Sprintf(template, imgsrc, msg.Name, msg.AlertMetrics, msg.AlertValues, strconv.Itoa(msg.Frequency), tnow)
         }
         if state == "ok" {
                 template = `
@@ -200,13 +203,13 @@ func renderMessage(state, imgsrc string, msg client.SimpleInfo) string {
                 <p>Alarm: %s Recovery !</p>
                 <p>Metric: %s</p>
                 <p>Value: %v</p>
-                <p>Detail: It's need %v second at least to recovery.</p>
-                <p>Time: %v </p>
+                <p>Time: %v UTC</p>
        </body>
 </html>
 `
+         content = fmt.Sprintf(template, imgsrc, msg.Name, msg.AlertMetrics, msg.AlertValues,tnow)       
         }
-        var content = fmt.Sprintf(template, imgsrc, msg.Name, msg.AlertMetrics, msg.AlertValues, strconv.Itoa(msg.Frequency), time.Now().UTC().String())
+        
         return content
 }
 
