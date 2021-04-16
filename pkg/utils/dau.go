@@ -139,9 +139,9 @@ func GHtml(b *bytes.Buffer)error{
   td := int(t.Weekday())
   et := int(time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local).Unix())
   
-  _,wk = t.ISOWeek()
-  y,m,d = t.Date()
-  h,M,s = t.Clock()
+  _,wk := t.ISOWeek()
+  y,m,d := t.Date()
+  h,M,s := t.Clock()
 
   DReport =  DailyReport{
          Timer: fmt.Sprintf("%d/%d/%d %d:%d:%d UTC",int(m),d,y,h,M,s),
