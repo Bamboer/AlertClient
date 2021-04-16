@@ -1,6 +1,8 @@
 package utils
 
 import(
+  "grafana/pkg/configer"
+  "grafana/pkg/notification"
   "time"
   "bytes"
   "strings"
@@ -17,8 +19,6 @@ import(
   "github.com/aws/aws-sdk-go-v2/config"
   "github.com/aws/aws-sdk-go-v2/service/cloudwatch"
   "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
-  "grafana/pkg/configer"
-  "grafana/pkg/notification"
 )
 
 func init(){
