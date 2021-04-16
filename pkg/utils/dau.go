@@ -29,12 +29,6 @@ var(
   GraphiteURL = "http://10.50.24.197:7001/render"
   User = "8bf3584d"
   Pwd  = "6f30e011"
-  _,wk = time.Now().ISOWeek()
-  DReport =  DailyReport{
-         Timer: time.Now(),
-         WK:    wk,
-         WeekDay: map[int]DayData{},
-}
 )
 
 type Tres struct{
@@ -141,7 +135,20 @@ func GHtml(b *bytes.Buffer)error{
   elb := conf.AWSELBName
   region := conf.AWSRegion
   tpPath := conf.DauTpPath
+  t := time.Now()
+  td := int(t.Weekday())
+  et := int(time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local).Unix())
+  
+  _,wk = t.ISOWeek()
+  y,m,d = t.Date()
+  h,M,s = t.Clock()
 
+  DReport =  DailyReport{
+         Timer: fmt.Sprintf("%d/%d/%d %d:%d:%d UTC",int(m),d,y,h,M,s),
+         WK: wk,
+         WeekDay: map[int]DayData{},
+  }
+  
   access,err := Access(region,elb)
   if err != nil{
     info.Println(err)
@@ -151,9 +158,7 @@ func GHtml(b *bytes.Buffer)error{
     info.Println(err)
   }
 
-  t := time.Now()
-  td := int(t.Weekday())
-  et := int(time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,time.Local).Unix())
+
 
   DReport.WeekDay[td] = DayData{Health: health[et]*100 }
   for i := 1; i <= int(td);i++{
