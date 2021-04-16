@@ -143,7 +143,7 @@ func GHtml(b *bytes.Buffer)error{
   y,m,d := t.Date()
   h,M,s := t.Clock()
 
-  DReport =  DailyReport{
+  DReport :=  DailyReport{
          Timer: fmt.Sprintf("%d/%d/%d %d:%d:%d UTC",int(m),d,y,h,M,s),
          WK: wk,
          WeekDay: map[int]DayData{},
